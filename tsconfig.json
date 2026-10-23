@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "lib": ["ESNext", "DOM", "DOM.Iterable"],
+        "types": ["vite/client", "node"],
+        "baseUrl": ".",
+        "paths": { "@/*": ["resources/js/*"] },
+        "noEmit": true
+    },
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.vue", "*.config.ts", "tests/e2e/**/*.ts"]
+}
