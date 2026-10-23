@@ -48,7 +48,7 @@ Start with built-in database queues if needed. Add Redis/Horizon, Reverb/Echo, D
 - System Admin is a protected **global flag on `users`**, not a workspace role.
 - Seed only **Manager** and **Member** as default workspace roles. No default Viewer or separate Owner role.
 - System Admin and Managers can create, edit, assign, and delete **custom workspace roles** within their authority. Managers cannot grant permissions they do not have or modify System Admin status.
-- Define supported permissions as `resource.action` keys in Laravel code/config; store role grants as JSON. Examples: `members.invite`, `roles.manage`, `projects.create`, `tickets.update`, `tickets.assign`.
+- Define module permissions centrally in Laravel configuration using `resource.action` keys and supported `view`, `create`, `edit`, `delete`, and `setup` actions. Store enabled keys as a JSON array on roles. Phase 01 registers workspace members, roles/permissions, and activity; future modules register actions when implemented. System-level account/workspace administration remains protected by the global System Admin flag.
 - Roles grant capabilities; **Policies** also enforce workspace, project membership, ownership, and ticket-specific conditions.
 - Hide unauthorized UI actions for usability, but enforce every access check on the server.
 
@@ -93,7 +93,7 @@ Use hashed invitation tokens, login rate limits, CSRF protection, session regene
 |---|---|
 | `users` | name, unique email, password, status, email_verified_at, `is_system_admin` |
 | `workspaces` | name, unique slug |
-| `roles` | workspace_id, name, permissions JSON, is_system |
+| `roles` | workspace_id, name, unique workspace-scoped code, permissions JSON, is_system |
 | `workspace_members` | workspace_id, user_id, role_id; unique (workspace_id, user_id) |
 | `workspace_invitations` | workspace_id, email, role_id, token_hash, expires_at, accepted_at, invited_by |
 | `projects` | workspace_id, name, key, description; unique (workspace_id, key) |

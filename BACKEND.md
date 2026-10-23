@@ -59,4 +59,15 @@ Rules:
 - Run relevant tests and formatting (Laravel Pint when configured). Report any checks that could not run.
 - Change only what the task requires. Do not implement unapproved modules or refactor unrelated code.
 
+
+## Module-owned form and selection data
+- Each business module owns the **data contract** its forms and filters need: available select options, available input fields and required/read-only flags when configurable, field labels, defaults, allowed actions, and validation rules.
+- Prepare these values on the Laravel side and pass them as **small, clearly named Inertia page props** (for example, `workTypes`, `priorities`, `assignees`, `labels`, `fieldLabels`, `fieldStates`, `defaults`). Keep this preparation near the module's controller or focused query/helper; do not build a generic form-schema engine.
+- Dropdown options should use a consistent, simple shape such as `{ value, label }` where useful. Provide stable IDs/keys for submitted values and human-readable labels for display.
+- Query only options the current user is allowed to select, restricted to the active project and record state. Do not send full models or unrelated columns merely to populate a select.
+- When modules have configurable fields or labels, the backend supplies their metadata; do not duplicate those rules or option lists in Vue. Static UI copy that is not business-configurable may stay in the frontend.
+- For large or dependent selects, use a small authorized search endpoint or an Inertia partial reload **only when needed**; do not preload thousands of options.
+- **The submitted option must still be validated on the server** against current membership, project, status, and allowed choices. Displayed options are not authorization or a substitute for validation.
+- Keep data contracts explicit and module-specific. Do not introduce a generic metadata framework, repositories, or services solely to pass dropdown data.
+
 **Rule: Readable and correct beats abstract and clever.**

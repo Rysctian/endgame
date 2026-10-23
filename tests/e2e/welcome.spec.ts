@@ -1,14 +1,12 @@
 import { expect, test } from '@playwright/test';
-
-test('Laravel serves and mounts the Inertia Vue page', async ({ page }) => {
+test('application entry directs guests to sign in', async ({ page }) => {
     const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-
-    const response = await page.goto('/');
-
-    expect(response?.status()).toBe(200);
-    await expect(page).toHaveTitle('Welcome - ENDGAME');
-    await expect(page.getByRole('heading', { name: 'ENDGAME' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Laravel documentation' })).toBeVisible();
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveTitle('Sign in - ENDGAME');
+    await expect(
+        page.getByRole('heading', { name: 'Sign in', exact: true }),
+    ).toBeVisible();
     expect(errors).toEqual([]);
 });

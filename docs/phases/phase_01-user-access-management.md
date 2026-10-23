@@ -1,5 +1,7 @@
 # Module 01 — User & Access Management
 
+The complete module blueprint and implemented behavior are maintained in [User & Access Management](../modules/user-access-management.md).
+
 ## Goal
 Manage user accounts, workspace membership, roles, and permissions for a Jira-like task manager. Keep implementation simple and use native Laravel features.
 
@@ -12,7 +14,7 @@ Manage user accounts, workspace membership, roles, and permissions for a Jira-li
 
 - System Admin is a **global user flag** (`users.is_system_admin`), not an assignable workspace role.
 - Seed **Manager** and **Member** as default workspace roles. No default Viewer or separate Owner role.
-- Allow custom workspace roles later using explicit permission keys; never allow privilege escalation beyond the actor's permissions.
+- Allow custom workspace roles using explicit permission keys; never allow privilege escalation beyond the actor's permissions.
 
 ## Core Processes
 1. **Account:** Register/sign in, sign out, edit profile, change/reset password, verify email, and suspend/reactivate accounts (admin only).
@@ -23,7 +25,7 @@ Manage user accounts, workspace membership, roles, and permissions for a Jira-li
 6. **Audit:** Record invitations, membership/role changes, account administration, and other security-relevant actions.
 
 ## Permission Model
-- Permission keys use `resource.action`, e.g. `members.invite`, `members.update`, `roles.manage`, `projects.create`, `tickets.update`, `tickets.assign`.
+- Permission keys use `resource.action`, e.g. `members.view`, `members.create`, `members.edit`, `members.delete`, `roles.setup`, `activity.view`.
 - Store allowed keys in `roles.permissions` (JSON). Define the supported keys in Laravel code/config.
 - Laravel **Policies/Gates** enforce both permissions and resource scope. Frontend visibility is UX only, never security.
 - Manager permissions apply within their workspace. Members can only access projects they are permitted to join (project membership defined in Project module).
@@ -34,7 +36,7 @@ Manage user accounts, workspace membership, roles, and permissions for a Jira-li
 |---|---|
 | `users` | id, name, email (unique), password, status, email_verified_at, is_system_admin |
 | `workspaces` | id, name, slug (unique) |
-| `roles` | id, workspace_id, name, permissions (JSON), is_system |
+| `roles` | id, workspace_id, name, code (unique within workspace), permissions (JSON), is_system |
 | `workspace_members` | id, workspace_id, user_id, role_id; unique(workspace_id, user_id) |
 | `workspace_invitations` | id, workspace_id, email, role_id, token_hash, expires_at, accepted_at, invited_by |
 | `activity_logs` | id, workspace_id (nullable), actor_id, action, subject_type, subject_id, changes, created_at |

@@ -1,8 +1,50 @@
 <?php
 
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\WorkspaceController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
+Route::get('/', fn (Request $request) => redirect($request->user() ? '/workspaces' : '/login'));
+Route::middleware('guest')->group(function () {
+    Route::get('/login', fn () => Inertia::render('auth/login'))->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', fn () => Inertia::render('auth/register'))->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
+    Route::get('/forgot-password', fn () => Inertia::render('auth/forgot-password'))->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'forgot'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('/reset-password/{token}', fn (Request $request, string $token) => Inertia::render('auth/reset-password', ['token' => $token, 'email' => $request->query('email', '')]))->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'reset'])->middleware('throttle:6,1')->name('password.update');
+});
+Route::middleware(['auth', 'active'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/email/verify', fn () => Inertia::render('auth/verify-email'))->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [AuthController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'password']);
+    Route::middleware('verified')->group(function () {
+        Route::post('/workspaces/{workspace}/invitations', [InvitationController::class, 'store'])->middleware('throttle:20,1');
+        Route::delete('/workspaces/{workspace}/invitations/{invitation}', [InvitationController::class, 'destroy']);
+        Route::get('/invitations/{invitation}/{token}', [InvitationController::class, 'show'])->name('invitations.show');
+        Route::post('/invitations/{invitation}/{token}', [InvitationController::class, 'accept'])->name('invitations.accept');
+        Route::get('/workspaces', [WorkspaceController::class, 'index'])->name('workspaces.index');
+        Route::post('/workspaces', [WorkspaceController::class, 'store']);
+        Route::get('/workspaces/{workspace}', [WorkspaceController::class, 'show'])->name('workspaces.show');
+        Route::patch('/workspaces/{workspace}', [WorkspaceController::class, 'update']);
+        Route::post('/workspaces/{workspace}/roles', [RoleController::class, 'store']);
+        Route::patch('/workspaces/{workspace}/roles/{role}', [RoleController::class, 'update']);
+        Route::delete('/workspaces/{workspace}/roles/{role}', [RoleController::class, 'destroy']);
+        Route::patch('/workspaces/{workspace}/members/{member}', [MemberController::class, 'update']);
+        Route::delete('/workspaces/{workspace}/members/{member}', [MemberController::class, 'destroy']);
+        Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
+        Route::patch('/admin/users/{user}', [AdminUserController::class, 'update']);
+    });
 });

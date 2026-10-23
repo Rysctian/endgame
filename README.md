@@ -2,7 +2,7 @@
 
 Foundation installed from [tech-stack.md](tech-stack.md): Laravel 13, PHP 8.5.12, Vue 3 with TypeScript and Inertia 3, Tailwind CSS 4, shadcn-vue, Lucide Vue, date-fns, Vite, pnpm, Composer, and MySQL 8.4.13 LTS.
 
-This is a clean Laravel application with Vue/Inertia integrated manually. Authentication uses Laravel's existing session guard and built-ins; no authentication package or authentication screens have been added. Task management features are not implemented yet.
+Phase 01 implements native session authentication, account settings, email verification and password recovery, System Admin account/workspace administration, workspace memberships, custom roles, invitations and security activity. Project and ticket features remain deferred. See [the module blueprint](docs/modules/user-access-management.md).
 
 ## Start on this Windows computer
 
@@ -27,7 +27,7 @@ Use `pnpm.cmd` in PowerShell because this computer blocks `.ps1` launchers. No g
 
 ## Database
 
-MySQL 8.4.13 runs on `127.0.0.1:3384`, with database `endgame` and a dedicated `endgame` user. Generated application credentials are in `.env`; generated administrator credentials are in `.local/admin.cnf`. These files are ignored by Git. The initial Laravel migrations have been applied.
+MySQL 8.4.13 runs on `127.0.0.1:3384`, with the separate database `endgame2` and a dedicated `endgame_phase01` user. Generated application credentials are in `.env`; generated administrator credentials are in `.local/admin.cnf`. These files are ignored by Git. Apply outstanding forward migrations with `.\php.cmd artisan migrate`; existing data is preserved.
 
 ```powershell
 .\mysql.cmd start
@@ -47,8 +47,30 @@ pnpm.cmd run build
 pnpm.cmd run test:e2e
 ```
 
-The browser smoke test uses Chromium and starts a temporary Laravel server on port 8001. Build assets before running it. Install the browser on a fresh machine with `pnpm.cmd exec playwright install chromium`.
+The browser suite uses Chromium and starts a temporary Laravel server on a checked, randomly selected local port with a newly created SQLite database under `storage/framework/testing/`. It does not use the development MySQL database. Build assets before running it. Install the browser on a fresh machine with `pnpm.cmd exec playwright install chromium`.
 
 PHPUnit uses an isolated in-memory SQLite database for fast tests. The development application uses MySQL. Vitest is installed and configured for future `resources/js/**/*.test.ts` files; `pnpm.cmd run test:unit` currently permits an empty suite.
 
 shadcn-vue is initialized in `components.json`, with a Button component installed. Add components with `pnpm.cmd exec shadcn-vue add <component>`.
+
+
+## First System Admin and demo data
+
+Apply the schema, then provision your own administrator with the explicit console command. New accounts prompt for a password (12 characters minimum). Promoting an existing account preserves its password, status and verification state.
+
+```powershell
+.\php.cmd artisan migrate
+.\php.cmd artisan app:make-admin you@example.com --name="Your Name"
+```
+
+Configure Laravel's mail transport in .env so verification, recovery and invitation emails can be delivered. The log mailer is suitable for local development only. Do not publish the application with debug mode enabled.
+
+Local/testing demo data is available through the default seeder:
+
+```powershell
+.\php.cmd artisan db:seed
+```
+
+This creates five demo users, five workspaces, five roles per workspace, five members per workspace, five invitations per workspace, and five activity records per workspace. Demo users use demo-password-123, remain ordinary users, and are only created when their email does not already exist. Rerunning preserves existing credentials and relationships. The seeder runs automatically only in local/testing environments.
+
+On restricted Windows environments, Vite's default config bundler may fail directory access checks. Use pnpm.cmd exec vite build --configLoader runner (or invoke Vite with --configLoader runner directly). The tests themselves require no network access once Chromium is installed.
