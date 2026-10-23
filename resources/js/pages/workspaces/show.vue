@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout.vue';
 import WorkspaceForm from '@/features/user-access/workspace-form.vue';
@@ -69,6 +69,12 @@ const base = '/workspaces/' + props.workspace.id;
 </script>
 <template>
     <AppLayout :title="workspace.name">
+        <Link
+            v-if="can['projects.view'] || can['projects.create']"
+            :href="'/workspaces/' + workspace.id + '/projects'"
+            class="inline-flex text-sm font-medium hover:underline"
+            >Projects</Link
+        >
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 class="break-words text-2xl font-semibold tracking-tight">

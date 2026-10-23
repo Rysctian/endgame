@@ -27,7 +27,7 @@ Use `pnpm.cmd` in PowerShell because this computer blocks `.ps1` launchers. No g
 
 ## Database
 
-MySQL 8.4.13 runs on `127.0.0.1:3384`, with the separate database `endgame2` and a dedicated `endgame_phase01` user. Generated application credentials are in `.env`; generated administrator credentials are in `.local/admin.cnf`. These files are ignored by Git. Apply outstanding forward migrations with `.\php.cmd artisan migrate`; existing data is preserved.
+The repository bundles MySQL 8.4.13 on `127.0.0.1:3384`. The application connects to the database configured in `.env`; this checkout currently uses the existing `endgame2` database on port `3307`. Generated credentials for the bundled instance are stored in ignored local configuration files, including `.local/admin.cnf`; application connection credentials remain in the ignored `.env`. Apply outstanding forward migrations with `.\php.cmd artisan migrate`; existing data is preserved.
 
 ```powershell
 .\mysql.cmd start
@@ -71,6 +71,8 @@ Local/testing demo data is available through the default seeder:
 .\php.cmd artisan db:seed
 ```
 
-This creates five demo users, five workspaces, five roles per workspace, five members per workspace, five invitations per workspace, and five activity records per workspace. Demo users use demo-password-123, remain ordinary users, and are only created when their email does not already exist. Rerunning preserves existing credentials and relationships. The seeder runs automatically only in local/testing environments.
+This creates five demo users, five workspaces, five roles per workspace, five members per workspace, five invitations per workspace, and five activity records per workspace. It also creates five projects per demo workspace and assigns its active demo members to newly created projects. Project edits, archive state, and membership changes survive reruns. Demo users use demo-password-123, remain ordinary users, and are only created when their email does not already exist. Rerunning preserves existing credentials and relationships. The seeder runs automatically only in local/testing environments.
 
 On restricted Windows environments, Vite's default config bundler may fail directory access checks. Use pnpm.cmd exec vite build --configLoader runner (or invoke Vite with --configLoader runner directly). The tests themselves require no network access once Chromium is installed.
+
+Project Management (P02) is available from each authorized workspace’s **Projects** link. Its complete blueprint is in `docs/modules/project-management.md`. Apply the forward migration with `.\php.cmd artisan migrate`; optionally populate new project tables with `.\php.cmd artisan db:seed --class=DemoProjectSeeder`. Project field metadata, status filters, and eligible member options are supplied by Laravel.

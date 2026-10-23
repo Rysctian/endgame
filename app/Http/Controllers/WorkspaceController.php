@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Project;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +63,7 @@ class WorkspaceController extends Controller
         $can = collect(config('access.permissions'))->mapWithKeys(fn ($label, $key) => [$key => $user->hasWorkspacePermission($workspace, $key)])->all();
         $roles = $workspace->roles()->orderBy('name')->get();
         $grants = array_keys(array_filter($can));
-        $assignable = $roles->filter(fn ($role) => $user->is_system_admin || array_diff($role->permissions, $grants) === [])->values();
+        $assignable = $roles->filter(fn ($role) => $role->assignableBy($user, $grants))->values();
         $members = null;
         if ($can['members.view']) {
             $members = $workspace->members()->with(['user:id,name,email,status,is_system_admin', 'role:id,name,permissions'])->orderBy('id')->paginate(20, ['*'], 'members_page');
@@ -86,7 +87,14 @@ class WorkspaceController extends Controller
                 return ['key' => $key, 'label' => $module['label'], 'actions' => collect($module['actions'])->mapWithKeys(fn ($label, $action) => [$action => ['key' => $key.'.'.$action, 'label' => $label, 'canGrant' => $can[$key.'.'.$action]]])->all()];
             })->values()->all(),
             'invitations' => $can['members.create'] ? $workspace->invitations()->with('role:id,name')->whereNull('accepted_at')->whereNull('cancelled_at')->orderByDesc('id')->paginate(10, ['id', 'workspace_id', 'email', 'role_id', 'expires_at'], 'invitations_page')->through(fn ($invitation) => [...$invitation->only('id', 'email', 'expires_at'), 'role' => $invitation->role->only('id', 'name'), 'canCancel' => $assignable->contains('id', $invitation->role_id)]) : null,
-            'activities' => $can['activity.view'] ? $workspace->activities()->orderByDesc('id')->paginate(15, ['id', 'action', 'actor_id', 'changes', 'created_at'], 'activity_page') : null,
+            'activities' => $can['activity.view'] ? $workspace->activities()->where(function ($query) use ($workspace, $user, $can) {
+                $query->where('subject_type', '!=', (new Project)->getMorphClass())
+                    ->orWhere(function ($query) use ($workspace, $user, $can) {
+                        $query->where('subject_type', (new Project)->getMorphClass())
+                            ->whereIn('subject_id', Project::visibleTo($user, $workspace)
+                                ->when(! $can['projects.view'], fn ($q) => $q->whereRaw('1 = 0'))->select('id'));
+                    });
+            })->orderByDesc('id')->paginate(15, ['id', 'action', 'actor_id', 'changes', 'created_at'], 'activity_page') : null,
         ]);
     }
 }

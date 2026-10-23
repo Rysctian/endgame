@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\ProjectMember;
 use App\Models\Workspace;
 use App\Models\WorkspaceMember;
 use Illuminate\Http\Request;
@@ -43,6 +44,12 @@ class MemberController extends Controller
             $this->protect($request, $record);
             $this->protectLastManager($workspace, $record);
             ActivityLog::record($request->user(), 'membership.removed', $record, $workspace->id, ['user_id' => $record->user_id, 'role_id' => $record->role_id]);
+            $projectMemberships = ProjectMember::where('user_id', $record->user_id)
+                ->whereHas('project', fn ($q) => $q->where('workspace_id', $workspace->id))->with('project')->get();
+            foreach ($projectMemberships as $membership) {
+                ActivityLog::record($request->user(), 'project.member_removed', $membership->project, $workspace->id, ['user_id' => $record->user_id, 'reason' => 'workspace_membership_removed']);
+                $membership->delete();
+            }
             $record->delete();
         });
 

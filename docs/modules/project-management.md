@@ -1,6 +1,6 @@
 # Project Management
 
-**Status:** Approved P02 design; implementation in progress.  
+**Status:** Implemented and verified with Laravel feature tests and Chromium workflows.
 **Dependencies:** P01 User & Access Management (accounts, workspaces, roles, permissions, activity logs).  
 **Scope:** Workspace projects, project members, authorization, archiving, and restoration.
 
@@ -137,11 +137,12 @@ Use Vue 3 + Inertia forms, typed props, shadcn-vue, and feature-first components
 
 ## 8. Verification
 
-Cover project creation/edit, workspace-scoped key uniqueness, permissions/custom roles, project visibility, same-workspace membership, duplicate prevention, archive/restore, and denied cross-workspace requests with Laravel feature tests. Use Playwright for critical project and membership journeys. Include realistic factories and repeatable optional demo seed data for applicable tables.
+Laravel feature tests cover create/edit, normalization and workspace-scoped key uniqueness, protected fields, independent permissions/custom roles, Manager scope escalation, scoped list/activity counts, same-workspace member choices, bounded member search, duplicate prevention, archive/restore, suspension, workspace removal/rejoin, and denied cross-workspace requests. Upgrade tests verify default grants and preserved references. Factories create valid relationships; optional demo seeding is repeatable and preserves existing accounts and edited/archived projects. Chromium exercises create/edit, member assignment, a separate Member session, archive/read-only behavior, restore, removal/access revocation, and project search. The complete backend suite passes 53 tests / 648 assertions; all seven browser workflows pass.
 
 ## 9. Implementation Contracts
 
 - System Admin has global scope. Only the protected workspace Manager role (`is_system = true`, `code = manager`) bypasses project membership. Custom roles, regardless of their names or grants, remain project-scoped.
+- Custom roles cannot assign or invite the protected Manager role, even when they hold every registered permission; only protected Managers and System Admins can grant its broader scope.
 - A workspace member creating a project is automatically added as a project member, with an audit record. A System Admin without workspace membership is not added.
 - Viewing requires projects.view; create/edit/archive/setup permissions do not implicitly grant view. A creator without view returns to the workspace after creation.
 - Use name up to 255 characters, key 2–10 uppercase letters/digits starting with a letter, and description up to 10,000 characters. Trim text and uppercase the key; reject punctuation rather than silently changing it.
@@ -150,6 +151,7 @@ Cover project creation/edit, workspace-scoped key uniqueness, permissions/custom
 - Lock the workspace before project mutations, reload/lock the project, then recheck authorization/state. Workspace membership removal also removes project memberships in that workspace, preventing access from returning automatically after rejoining.
 - Suspended accounts cannot use project routes or appear as selectable members; existing project membership rows stay intact.
 - Routes live under /workspaces/{workspace}/projects. GET index/show, POST create, PATCH details, POST archive/restore, POST members, DELETE members/{member}. There is no project DELETE endpoint.
+- Workspace activity hides project-subject events unless the viewer also has projects.view and can access that project; activity counts follow the same filter.
 - All project mutations and their activity records commit together. Activity uses project.created, project.updated (before/after meaningful fields), project.archived, project.restored, project.member_added, and project.member_removed.
 - Add forward migrations for projects/project_members and the default project grants: Manager receives all five grants, Member receives projects.view; custom roles retain existing grants. New workspace defaults follow the same rule.
 

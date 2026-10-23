@@ -1,6 +1,6 @@
 # Phase 02 — Project Management
 
-**Status:** Specified; implementation and verification must be confirmed from code.  
+**Status:** Implemented and verified. See [the complete module blueprint](../modules/project-management.md) for the current behavior and verification coverage.
 **Dependencies:** P01 User & Access Management (accounts, workspaces, roles, permissions, activity logs).  
 **Scope:** Workspace projects, project members, authorization, archiving, and restoration.
 

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\ActivityLog;
+use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\User;
 use App\Models\WorkspaceInvitation;
 use App\Models\WorkspaceMember;
@@ -26,13 +28,30 @@ class ProvisioningTest extends TestCase
 
     public function test_demo_seed_is_repeatable_and_preserves_existing_credentials(): void
     {
-        $user = User::factory()->create(['email' => 'manager@example.test']);
+        $user = User::factory()->create(['email' => 'demo-user-1@example.test', 'status' => 'suspended', 'is_system_admin' => true]);
         $password = $user->password;
         $this->seed(DemoDatabaseSeeder::class);
         $this->seed(DemoDatabaseSeeder::class);
         $this->assertSame($password, $user->fresh()->password);
+        $this->assertSame('suspended', $user->fresh()->status);
+        $this->assertTrue($user->fresh()->is_system_admin);
         $this->assertDatabaseCount('workspaces', 5);
         $this->assertDatabaseCount('workspace_members', 25);
+    }
+
+    public function test_project_demo_data_is_repeatable_and_factories_keep_members_in_the_workspace(): void
+    {
+        $this->seed(DemoDatabaseSeeder::class);
+        $this->seed(DemoDatabaseSeeder::class);
+        $this->assertDatabaseCount('projects', 25);
+        $this->assertDatabaseCount('project_members', 125);
+        $member = ProjectMember::factory()->create();
+        $this->assertDatabaseHas('workspace_members', ['workspace_id' => $member->project->workspace_id, 'user_id' => $member->user_id]);
+        $project = Project::where('key', 'DEMO1')->firstOrFail();
+        $project->update(['name' => 'My renamed project', 'status' => 'archived']);
+        $this->seed(DemoDatabaseSeeder::class);
+        $this->assertSame('My renamed project', $project->fresh()->name);
+        $this->assertSame('archived', $project->fresh()->status);
     }
 
     public function test_factories_create_scoped_relations_and_hide_tokens(): void

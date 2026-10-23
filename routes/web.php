@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Http\Request;
@@ -44,6 +46,16 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/workspaces/{workspace}/roles/{role}', [RoleController::class, 'destroy']);
         Route::patch('/workspaces/{workspace}/members/{member}', [MemberController::class, 'update']);
         Route::delete('/workspaces/{workspace}/members/{member}', [MemberController::class, 'destroy']);
+        Route::prefix('/workspaces/{workspace}/projects')->group(function () {
+            Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
+            Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
+            Route::get('/{project}', [ProjectController::class, 'show'])->name('projects.show');
+            Route::patch('/{project}', [ProjectController::class, 'update'])->name('projects.update');
+            Route::post('/{project}/archive', [ProjectController::class, 'archive'])->name('projects.archive');
+            Route::post('/{project}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+            Route::post('/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+            Route::delete('/{project}/members/{member}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
+        });
         Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
         Route::patch('/admin/users/{user}', [AdminUserController::class, 'update']);
     });

@@ -48,7 +48,7 @@ Start with built-in database queues if needed. Add Redis/Horizon, Reverb/Echo, D
 - System Admin is a protected **global flag on `users`**, not a workspace role.
 - Seed only **Manager** and **Member** as default workspace roles. No default Viewer or separate Owner role.
 - System Admin and Managers can create, edit, assign, and delete **custom workspace roles** within their authority. Managers cannot grant permissions they do not have or modify System Admin status.
-- Define module permissions centrally in Laravel configuration using `resource.action` keys and supported `view`, `create`, `edit`, `delete`, and `setup` actions. Store enabled keys as a JSON array on roles. Phase 01 registers workspace members, roles/permissions, and activity; future modules register actions when implemented. System-level account/workspace administration remains protected by the global System Admin flag.
+- Define module permissions centrally in Laravel configuration using `resource.action` keys and supported `view`, `create`, `edit`, `delete`, and `setup` actions. Store enabled keys as a JSON array on roles. Phase 01 registers workspace members, roles/permissions, and activity; Phase 02 registers projects. Future modules register actions when implemented. System-level account/workspace administration remains protected by the global System Admin flag.
 - Roles grant capabilities; **Policies** also enforce workspace, project membership, ownership, and ticket-specific conditions.
 - Hide unauthorized UI actions for usability, but enforce every access check on the server.
 
@@ -65,8 +65,9 @@ Use hashed invitation tokens, login rate limits, CSRF protection, session regene
 ## 4. Project & Ticket Processes
 
 ### Projects
+- Archive preserves project membership/history and makes the project read-only until an actor with projects.setup restores it. P02 has no permanent project deletion.
 - Manager/System Admin creates a project with a unique workspace-scoped **key** (e.g., `HRIS`) and name.
-- Manager controls project membership and settings; Members see only projects they are authorized to access.
+- Manager controls project membership and settings; Members and custom roles require explicit project membership. Only protected Managers and System Admins have workspace-wide project scope. Viewing still requires projects.view.
 - A project's tickets, board, and members belong to its workspace. Never trust workspace or project IDs from the client without scoped authorization.
 
 ### Tickets
@@ -96,7 +97,7 @@ Use hashed invitation tokens, login rate limits, CSRF protection, session regene
 | `roles` | workspace_id, name, unique workspace-scoped code, permissions JSON, is_system |
 | `workspace_members` | workspace_id, user_id, role_id; unique (workspace_id, user_id) |
 | `workspace_invitations` | workspace_id, email, role_id, token_hash, expires_at, accepted_at, invited_by |
-| `projects` | workspace_id, name, key, description; unique (workspace_id, key) |
+| `projects` | workspace_id, name, immutable key, description, active/archived status, created_by; unique (workspace_id, key) |
 | `project_members` | project_id, user_id; unique (project_id, user_id) |
 | `tickets` | project_id, number, parent_id, type, title, description, status, priority, reporter_id, assignee_id, due_at, position |
 | `ticket_comments` | ticket_id, user_id, body, timestamps |

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -194,6 +195,92 @@ class ProjectManagementTest extends TestCase
         $custom->memberships()->first()->role->update(['permissions' => ['projects.view']]);
         $this->patch($this->base($w, $p), ['name' => 'Denied'])->assertForbidden();
         $this->get($this->base($w, $p))->assertInertia(fn (Assert $page) => $page->where('can.edit', false)->where('memberOptions', []));
+    }
+
+    public function test_custom_roles_cannot_obtain_manager_project_scope_through_assignment_or_invitation(): void
+    {
+        Notification::fake();
+        $w = $this->workspace();
+        $manager = $this->member($w, 'manager');
+        $custom = $this->member($w, permissions: array_keys(config('access.permissions')));
+        $target = $this->member($w);
+        $managerRole = $w->roles()->where('code', 'manager')->firstOrFail();
+        $targetMembership = $w->members()->where('user_id', $target->id)->firstOrFail();
+        $this->actingAs($custom)->patch('/workspaces/'.$w->id.'/members/'.$targetMembership->id, ['role_id' => $managerRole->id])->assertForbidden();
+        $this->post('/workspaces/'.$w->id.'/invitations', ['email' => 'scope-bypass@example.test', 'role_id' => $managerRole->id])->assertForbidden();
+        $this->assertFalse($custom->isWorkspaceManager($w));
+        $this->actingAs($manager)->patch('/workspaces/'.$w->id.'/members/'.$targetMembership->id, ['role_id' => $managerRole->id])->assertSessionHasNoErrors();
+        $this->assertTrue($target->isWorkspaceManager($w));
+    }
+
+    public function test_custom_role_selection_data_hides_protected_manager_scope(): void
+    {
+        $w = $this->workspace();
+        $this->member($w, 'manager');
+        $custom = $this->member($w, permissions: array_keys(config('access.permissions')));
+        $managerRole = $w->roles()->where('code', 'manager')->firstOrFail();
+        $this->actingAs($custom)->get('/workspaces/'.$w->id)->assertInertia(fn (Assert $page) => $page->where('roleOptions', fn ($roles) => ! collect($roles)->contains('id', $managerRole->id)));
+    }
+
+    public function test_archive_and_setup_grants_do_not_imply_each_other(): void
+    {
+        $w = $this->workspace();
+        $manager = $this->member($w, 'manager');
+        $p = $this->project($w, $manager);
+        $actor = $this->member($w, permissions: ['projects.view', 'projects.delete']);
+        $p->members()->create(['user_id' => $actor->id]);
+        $this->actingAs($actor)->post($this->base($w, $p).'/archive')->assertSessionHasNoErrors();
+        $this->post($this->base($w, $p).'/restore')->assertForbidden();
+        $actor->memberships()->first()->role->update(['permissions' => ['projects.view', 'projects.setup']]);
+        $this->post($this->base($w, $p).'/restore')->assertSessionHasNoErrors();
+        $this->post($this->base($w, $p).'/archive')->assertForbidden();
+        $this->patch($this->base($w, $p), ['name' => 'Denied'])->assertForbidden();
+        $this->get($this->base($w, $p))->assertInertia(fn (Assert $page) => $page->where('can.manageMembers', true)->where('can.archive', false)->where('can.edit', false));
+    }
+
+    public function test_project_activity_does_not_expose_unassigned_project_details(): void
+    {
+        $w = $this->workspace();
+        $manager = $this->member($w, 'manager');
+        $a = $this->project($w, $manager, 'ONE');
+        $this->project($w, $manager, 'TWO');
+        $reader = $this->member($w, permissions: ['projects.view', 'activity.view']);
+        $a->members()->create(['user_id' => $reader->id]);
+        $this->actingAs($reader)->get('/workspaces/'.$w->id)->assertInertia(fn (Assert $page) => $page->where('activities.total', 3));
+        $reader->memberships()->first()->role->update(['permissions' => ['activity.view']]);
+        $this->get('/workspaces/'.$w->id)->assertInertia(fn (Assert $page) => $page->where('activities.total', 1));
+    }
+
+    public function test_lists_are_paginated_filters_are_validated_and_member_choices_are_bounded_and_searchable(): void
+    {
+        $w = $this->workspace();
+        $manager = $this->member($w, 'manager');
+        $projects = Project::factory()->count(25)->create(['workspace_id' => $w->id, 'created_by' => $manager->id]);
+        $projects[0]->update(['status' => 'archived']);
+        $p = $projects[1];
+        $this->actingAs($manager)->get($this->base($w))->assertInertia(fn (Assert $page) => $page->has('projects.data', 20)->where('projects.total', 25)->has('statusOptions', 2)->where('fieldStates.key.readOnly', false));
+        $this->get($this->base($w).'?status=archived')->assertInertia(fn (Assert $page) => $page->where('projects.total', 1)->where('projects.data.0.id', $projects[0]->id));
+        $this->get($this->base($w).'?status=unknown')->assertSessionHasErrors('status');
+        $role = $w->roles()->where('code', 'member')->firstOrFail();
+        foreach (range(1, 55) as $index) {
+            $user = User::factory()->create(['name' => sprintf('Person %02d', $index)]);
+            $w->members()->create(['user_id' => $user->id, 'role_id' => $role->id]);
+        }
+        $this->get($this->base($w, $p))->assertInertia(fn (Assert $page) => $page->has('memberOptions', 50));
+        $this->get($this->base($w, $p).'?member_search=Person%2055')->assertInertia(fn (Assert $page) => $page->has('memberOptions', 1)->where('memberOptions.0.label', fn ($label) => str_starts_with($label, 'Person 55')));
+    }
+
+    public function test_suspension_revokes_project_access_for_an_existing_user(): void
+    {
+        $w = $this->workspace();
+        $manager = $this->member($w, 'manager');
+        $p = $this->project($w, $manager);
+        $user = $this->member($w);
+        $p->members()->create(['user_id' => $user->id]);
+        $this->actingAs($user)->get($this->base($w, $p))->assertOk();
+        $user->forceFill(['status' => 'suspended'])->save();
+        $this->get($this->base($w, $p))->assertRedirect('/login');
+        $this->assertDatabaseHas('project_members', ['project_id' => $p->id, 'user_id' => $user->id]);
     }
 
     public function test_foreign_workspace_routes_and_removed_workspace_memberships_cannot_reuse_project_access(): void

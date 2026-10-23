@@ -29,3 +29,12 @@ $member = $w->roles()->create(['name' => 'Member', 'code' => 'member', 'permissi
 $w->members()->create(['user_id' => User::where('email', 'manager@endgame.test')->first()->id, 'role_id' => $manager->id]);
 $w->members()->create(['user_id' => User::where('email', 'auditor@endgame.test')->firstOrFail()->id, 'role_id' => $member->id]);
 $w->invitations()->create(['email' => 'recipient@endgame.test', 'role_id' => $member->id, 'token_hash' => hash('sha256', str_repeat('a', 64)), 'expires_at' => now()->addDays(7), 'invited_by' => User::where('email', 'manager@endgame.test')->first()->id]);
+
+$projectWorkspace = Workspace::create(['name' => 'Project team', 'slug' => 'project-team']);
+$projectManagerRole = $projectWorkspace->roles()->create(['name' => 'Manager', 'code' => 'manager', 'permissions' => array_keys(config('access.permissions')), 'is_system' => true]);
+$projectMemberRole = $projectWorkspace->roles()->create(['name' => 'Member', 'code' => 'member', 'permissions' => ['projects.view'], 'is_system' => true]);
+foreach (['projectmanager', 'projectmember'] as $name) {
+    $user = User::create(['name' => ucfirst($name), 'email' => $name.'@endgame.test', 'password' => Hash::make('browser-password-123')]);
+    $user->forceFill(['email_verified_at' => now()])->save();
+    $projectWorkspace->members()->create(['user_id' => $user->id, 'role_id' => $name === 'projectmanager' ? $projectManagerRole->id : $projectMemberRole->id]);
+}
