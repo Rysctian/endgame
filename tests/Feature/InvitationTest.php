@@ -84,7 +84,7 @@ class InvitationTest extends TestCase
         $this->post('/workspaces', ['name' => 'Other', 'slug' => 'other']);
         $other = Workspace::latest('id')->first();
         $this->post('/workspaces/'.$w->id.'/invitations', ['email' => 'next@example.com', 'role_id' => $other->roles()->first()->id])->assertSessionHasErrors('role_id');
-        $limited = $w->roles()->create(['name' => 'Inviter', 'code' => 'inviter', 'permissions' => ['members.create', 'projects.view']]);
+        $limited = $w->roles()->create(['name' => 'Inviter', 'code' => 'inviter', 'permissions' => ['members.create', 'projects.view', 'tickets.view', 'tickets.create', 'tickets.edit']]);
         $user = User::factory()->create();
         $w->members()->create(['user_id' => $user->id, 'role_id' => $limited->id]);
         $this->actingAs($user)->post('/workspaces/'.$w->id.'/invitations', ['email' => 'next@example.com', 'role_id' => $w->roles()->where('name', 'Manager')->first()->id])->assertForbidden();

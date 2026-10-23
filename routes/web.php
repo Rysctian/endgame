@@ -7,7 +7,9 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\ProjectWorkflowController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +51,13 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::prefix('/workspaces/{workspace}/projects')->group(function () {
             Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
             Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
+            Route::get('/{project}/tickets', [TicketController::class, 'index'])->name('tickets.index');
+            Route::post('/{project}/tickets', [TicketController::class, 'store'])->name('tickets.store');
+            Route::patch('/{project}/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
+            Route::delete('/{project}/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+            Route::post('/{project}/tickets/{ticket}/move', [TicketController::class, 'move'])->name('tickets.move');
+            Route::get('/{project}/workflow', [ProjectWorkflowController::class, 'edit'])->name('workflow.edit');
+            Route::put('/{project}/workflow', [ProjectWorkflowController::class, 'update'])->name('workflow.update');
             Route::get('/{project}', [ProjectController::class, 'show'])->name('projects.show');
             Route::patch('/{project}', [ProjectController::class, 'update'])->name('projects.update');
             Route::post('/{project}/archive', [ProjectController::class, 'archive'])->name('projects.archive');

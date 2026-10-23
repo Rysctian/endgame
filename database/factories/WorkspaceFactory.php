@@ -15,7 +15,7 @@ class WorkspaceFactory extends Factory
     {
         return $this->afterCreating(function ($workspace) {
             $workspace->roles()->create(['name' => 'Manager', 'code' => 'manager', 'permissions' => array_keys(config('access.permissions')), 'is_system' => true]);
-            $workspace->roles()->create(['name' => 'Member', 'code' => 'member', 'permissions' => ['projects.view'], 'is_system' => true]);
+            $workspace->roles()->create(['name' => 'Member', 'code' => 'member', 'permissions' => ['projects.view', 'tickets.view', 'tickets.create', 'tickets.edit'], 'is_system' => true]);
         });
     }
 }

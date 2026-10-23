@@ -59,5 +59,5 @@ Endgame is a Jira-inspired task management application built with Laravel, Vue 3
 - Update the relevant specification if an approved requirement or design changes.
 
 ## Current Scope
-- **Specified:** User & Access Management (accounts, workspace membership, invitations, roles, and permissions).
+- **Specified:** User & Access Management (accounts, workspace membership, invitations, roles, and permissions); Project Management; Ticket, Kanban & Workflow Management (P03).
 - **Not yet specified:** Other modules. Do not implement them without an approved specification.

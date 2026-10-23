@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\ProjectWorkflowService;
+use App\Services\TicketService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,4 +39,16 @@ foreach (['projectmanager', 'projectmember'] as $name) {
     $user = User::create(['name' => ucfirst($name), 'email' => $name.'@endgame.test', 'password' => Hash::make('browser-password-123')]);
     $user->forceFill(['email_verified_at' => now()])->save();
     $projectWorkspace->members()->create(['user_id' => $user->id, 'role_id' => $name === 'projectmanager' ? $projectManagerRole->id : $projectMemberRole->id]);
+}
+
+$ticketWorkspace = Workspace::create(['name' => 'Ticket team', 'slug' => 'ticket-team']);
+$ticketRole = $ticketWorkspace->roles()->create(['name' => 'Manager', 'code' => 'manager', 'permissions' => array_keys(config('access.permissions')), 'is_system' => true]);
+$ticketUser = User::create(['name' => 'Ticket manager', 'email' => 'ticketmanager@endgame.test', 'password' => Hash::make('browser-password-123')]);
+$ticketUser->forceFill(['email_verified_at' => now()])->save();
+$ticketWorkspace->members()->create(['user_id' => $ticketUser->id, 'role_id' => $ticketRole->id]);
+$ticketProject = $ticketWorkspace->projects()->create(['name' => 'Product launch', 'key' => 'SHIP', 'description' => 'Deliver a thoughtful first release.', 'created_by' => $ticketUser->id, 'status' => 'active']);
+$ticketProject->members()->create(['user_id' => $ticketUser->id]);
+app(ProjectWorkflowService::class)->initialize($ticketProject);
+foreach (['Map the onboarding journey', 'Polish the navigation', 'Review keyboard accessibility'] as $title) {
+    app(TicketService::class)->create($ticketUser, $ticketWorkspace, (string) $ticketProject->id, ['title' => $title, 'description' => 'Keep the experience clear and considered.', 'type' => 'task', 'priority' => 'medium', 'assignee_id' => $ticketUser->id]);
 }

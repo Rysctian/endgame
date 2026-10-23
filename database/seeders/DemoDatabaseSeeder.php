@@ -38,7 +38,7 @@ class DemoDatabaseSeeder extends Seeder
                 );
 
                 $manager = $this->role($workspace, 'Manager', 'manager', $permissionKeys, true);
-                $member = $this->role($workspace, 'Member', 'member', ['projects.view'], true);
+                $member = $this->role($workspace, 'Member', 'member', ['projects.view', 'tickets.view', 'tickets.create', 'tickets.edit'], true);
                 $auditor = $this->role($workspace, 'Auditor', 'auditor', ['activity.view'], false);
                 $contributor = $this->role($workspace, 'Contributor', 'contributor', ['members.view', 'members.create', 'members.edit'], false);
                 $roleDesigner = $this->role($workspace, 'Role designer', 'role-designer', ['roles.view', 'roles.create', 'roles.edit', 'roles.setup'], false);
@@ -85,6 +85,7 @@ class DemoDatabaseSeeder extends Seeder
         });
 
         $this->call(DemoProjectSeeder::class);
+        $this->call(DemoTicketSeeder::class);
     }
 
     /**

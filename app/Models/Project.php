@@ -14,6 +14,26 @@ class Project extends Model
 
     protected $fillable = ['name', 'key', 'description', 'created_by', 'status'];
 
+    protected function casts(): array
+    {
+        return ['last_ticket_number' => 'integer', 'board_version' => 'integer', 'workflow_version' => 'integer'];
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    public function statuses(): HasMany
+    {
+        return $this->hasMany(ProjectStatus::class);
+    }
+
+    public function transitions(): HasMany
+    {
+        return $this->hasMany(ProjectStatusTransition::class);
+    }
+
     public function workspace(): BelongsTo
     {
         return $this->belongsTo(Workspace::class);

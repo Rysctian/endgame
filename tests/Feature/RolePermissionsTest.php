@@ -58,7 +58,7 @@ class RolePermissionsTest extends TestCase
     {
         $w = Workspace::factory()->create();
         $this->actingAs(User::factory()->create(['is_system_admin' => true]));
-        $this->post('/workspaces/'.$w->id.'/roles', ['name' => 'Root', 'code' => 'root', 'permissions' => ['tickets.view'], 'is_system' => true, 'is_system_admin' => true, 'workspace_id' => $w->id])->assertSessionHasErrors(['permissions.0', 'is_system', 'is_system_admin', 'workspace_id']);
+        $this->post('/workspaces/'.$w->id.'/roles', ['name' => 'Root', 'code' => 'root', 'permissions' => ['sprints.view'], 'is_system' => true, 'is_system_admin' => true, 'workspace_id' => $w->id])->assertSessionHasErrors(['permissions.0', 'is_system', 'is_system_admin', 'workspace_id']);
     }
 
     public function test_role_actions_and_permission_setup_are_authorized_independently(): void

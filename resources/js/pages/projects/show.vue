@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Link, useForm } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout.vue';
-import ProjectForm from '@/features/projects/project-form.vue';
-import MemberForm from '@/features/projects/member-form.vue';
-import FormDialog from '@/features/user-access/form-dialog.vue';
-import FormErrors from '@/features/user-access/form-errors.vue';
-import PaginationLinks from '@/features/user-access/pagination-links.vue';
-import type { Paginated } from '@/features/user-access/types';
+import { computed, ref } from "vue";
+import { Link, useForm } from "@inertiajs/vue3";
+import { Button } from "@/components/ui/button";
+import AppLayout from "@/layouts/app-layout.vue";
+import ProjectForm from "@/features/projects/project-form.vue";
+import MemberForm from "@/features/projects/member-form.vue";
+import FormDialog from "@/features/user-access/form-dialog.vue";
+import FormErrors from "@/features/user-access/form-errors.vue";
+import PaginationLinks from "@/features/user-access/pagination-links.vue";
+import type { Paginated } from "@/features/user-access/types";
 import type {
     ProjectDetails,
     ProjectWorkspace,
     ProjectMember,
     ProjectFormData,
     Option,
-} from '@/features/projects/types';
+} from "@/features/projects/types";
 const props = defineProps<
     ProjectFormData & {
         workspace: ProjectWorkspace;
@@ -25,6 +25,8 @@ const props = defineProps<
         memberOptions: Option[];
         memberSearch: string;
         can: {
+            tickets: boolean;
+            workflow: boolean;
             edit: boolean;
             archive: boolean;
             restore: boolean;
@@ -37,18 +39,18 @@ const editOpen = ref(false),
     confirmOpen = ref(false);
 const action = ref<{
     url: string;
-    method: 'post' | 'delete';
+    method: "post" | "delete";
     title: string;
     description: string;
     button: string;
 }>();
 const form = useForm({});
 const base = computed(
-    () => '/workspaces/' + props.workspace.id + '/projects/' + props.project.id,
+    () => "/workspaces/" + props.workspace.id + "/projects/" + props.project.id,
 );
 function ask(
     url: string,
-    method: 'post' | 'delete',
+    method: "post" | "delete",
     title: string,
     description: string,
     button: string,
@@ -65,7 +67,7 @@ function confirm() {
             confirmOpen.value = false;
         },
     };
-    if (action.value.method === 'delete')
+    if (action.value.method === "delete")
         form.delete(action.value.url, options);
     else form.post(action.value.url, options);
 }
@@ -133,6 +135,30 @@ function confirm() {
                 >
             </div>
         </div>
+        <nav class="flex gap-5 border-b text-sm" aria-label="Project views">
+            <span class="border-b-2 border-foreground pb-3">Overview</span
+            ><Link
+                v-if="can.tickets"
+                :href="base + '/tickets?view=board'"
+                class="pb-3 text-muted-foreground hover:text-foreground"
+                >Board</Link
+            ><Link
+                v-if="can.tickets"
+                :href="base + '/tickets?view=list'"
+                class="pb-3 text-muted-foreground hover:text-foreground"
+                >List</Link
+            ><Link
+                v-if="can.tickets"
+                :href="base + '/tickets?view=table'"
+                class="pb-3 text-muted-foreground hover:text-foreground"
+                >Table</Link
+            ><Link
+                v-if="can.workflow"
+                :href="base + '/workflow'"
+                class="pb-3 text-muted-foreground hover:text-foreground"
+                >Workflow</Link
+            >
+        </nav>
         <p
             v-if="fieldStates.name.readOnly"
             class="rounded-lg border bg-muted p-4 text-sm"

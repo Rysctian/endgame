@@ -13,11 +13,9 @@ Manage workspace members, projects, tickets, assignments, and work progress in o
 ### MVP Modules
 1. **User & Access Management:** Accounts, workspaces, invitations, default/custom roles, permissions, account administration.
 2. **Project Management:** Projects, project keys, membership, settings, project-scoped access.
-3. **Ticket Management:** Ticket creation, editing, types, priority, assignee, due date, parent/subtask relationships, backlog.
-4. **Kanban Board:** Status columns, drag-and-drop transitions, ordering and filters.
-5. **Collaboration & Audit:** Ticket comments and activity history.
+3. **Ticket, Kanban & Workflow Management (P03):** Ticket creation/editing, types, priority, assignee, due date, configurable project statuses and transitions, board ordering, list/table views, and scoped activity history.
 
-**Later:** Attachments, notifications, configurable workflows, sprints, epics/estimates, advanced reports, real-time collaboration, integrations, and agentic automation. Do not implement these unless separately authorized.
+**Later:** Comments, attachments, notifications, sprints, epics, subtasks/parent relationships, estimates, advanced reports, real-time collaboration, integrations, and agentic automation. Do not implement these unless separately authorized.
 
 ## 2. Tech Stack
 
@@ -48,7 +46,7 @@ Start with built-in database queues if needed. Add Redis/Horizon, Reverb/Echo, D
 - System Admin is a protected **global flag on `users`**, not a workspace role.
 - Seed only **Manager** and **Member** as default workspace roles. No default Viewer or separate Owner role.
 - System Admin and Managers can create, edit, assign, and delete **custom workspace roles** within their authority. Managers cannot grant permissions they do not have or modify System Admin status.
-- Define module permissions centrally in Laravel configuration using `resource.action` keys and supported `view`, `create`, `edit`, `delete`, and `setup` actions. Store enabled keys as a JSON array on roles. Phase 01 registers workspace members, roles/permissions, and activity; Phase 02 registers projects. Future modules register actions when implemented. System-level account/workspace administration remains protected by the global System Admin flag.
+- Define module permissions centrally in Laravel configuration using `resource.action` keys and supported `view`, `create`, `edit`, `delete`, and `setup` actions. Store enabled keys as a JSON array on roles. Phase 01 registers workspace members, roles/permissions, and activity; Phase 02 registers projects; Phase 03 registers tickets (including workflow setup). Future modules register actions when implemented. System-level account/workspace administration remains protected by the global System Admin flag.
 - Roles grant capabilities; **Policies** also enforce workspace, project membership, ownership, and ticket-specific conditions.
 - Hide unauthorized UI actions for usability, but enforce every access check on the server.
 
@@ -71,22 +69,20 @@ Use hashed invitation tokens, login rate limits, CSRF protection, session regene
 - A project's tickets, board, and members belong to its workspace. Never trust workspace or project IDs from the client without scoped authorization.
 
 ### Tickets
-- Users with permission create tickets within accessible projects.
-- MVP fields: project, sequential project-scoped ticket number, title, description, type, status, priority, reporter, assignee (nullable), due date (nullable), parent ticket (nullable), timestamps.
-- Ticket key format: `PROJECTKEY-123` (stable and unique); generate numbers safely under concurrency.
-- Recommended MVP types: **Task, Bug, Subtask**. Add Story/Epic only when planning features require them.
-- Assignees must have access to the project; subtasks belong to the same project as their parent.
-- Only authorized users may edit, assign, delete, or change ticket status.
+- Users need the corresponding tickets.view/create/edit/delete permission and project/workspace visibility. Ticket permissions do not implicitly grant project administration; ticket-only readers can discover their assigned boards from the workspace.
+- Fields: project, sequential project number, title, description, type (Task, Bug, Story), priority (Low, Medium, High, Urgent), status, reporter, nullable assignee and due date, ordering, version and soft-deletion timestamps.
+- Keys use PROJECTKEY-123, with numbers allocated under a project row lock and never reused after deletion. Project keys remain immutable.
+- Select only active, verified, same-workspace project members with ticket access. Preserve historical assignee references when membership changes, but reject newly assigning an ineligible user.
+- Server derives ownership, number, reporter and initial status; generic edits cannot change status. Archived projects are read-only.
+- Creation, meaningful updates, assignment, deletion and moves commit with their audit records. Version checks reject stale writes.
 
-### Default Workflow
-
-`Backlog → To Do → In Progress → In Review → Done`
-
-- **In Review → In Progress** when changes are requested.
-- **Done → To Do** when a ticket is reopened by an authorized user.
-- Kanban displays persisted tickets grouped by status; moving a card updates status/order through a validated Laravel request.
-- For MVP, seed fixed statuses and permitted transitions. Make workflow configuration a later module; do not build a generic workflow engine prematurely.
-- Log meaningful changes, including status, assignee, priority, and membership changes.
+### Configurable workflow and board
+- Each project owns ordered statuses, exactly one initial status, and allowed directed transitions. Category (open/active/done) remains separate from display names.
+- Default statuses: To Do (initial), In Progress, In Review, Done. Default transitions: To Do → In Progress; In Progress → To Do/In Review; In Review → In Progress/Done; Done → To Do.
+- tickets.setup permits configuration within the same project scope. Preserve status IDs on rename/reorder; reject removing statuses referenced by any ticket, including deleted tickets.
+- Kanban, grouped list and table read the same tickets. Backend filters, bounded columns and table pagination keep payloads small.
+- Cross-column moves require a currently configured transition. Same-column moves change order only. The server uses a before-ticket anchor against the complete column and checks ticket/board versions before saving.
+- UI follows docs/UI-UX.md and design-reference images: compact project tabs, calm sidebar, board columns, creation dialog, details drawer, dense list/table, semantic tokens and submission toasts. Excluded screenshot features remain absent.
 
 ## 5. Initial Data Model
 
@@ -97,10 +93,11 @@ Use hashed invitation tokens, login rate limits, CSRF protection, session regene
 | `roles` | workspace_id, name, unique workspace-scoped code, permissions JSON, is_system |
 | `workspace_members` | workspace_id, user_id, role_id; unique (workspace_id, user_id) |
 | `workspace_invitations` | workspace_id, email, role_id, token_hash, expires_at, accepted_at, invited_by |
-| `projects` | workspace_id, name, immutable key, description, active/archived status, created_by; unique (workspace_id, key) |
+| `projects` | workspace_id, name, immutable key, description, active/archived status, created_by, last_ticket_number, board_version, workflow_version; unique (workspace_id, key) |
 | `project_members` | project_id, user_id; unique (project_id, user_id) |
-| `tickets` | project_id, number, parent_id, type, title, description, status, priority, reporter_id, assignee_id, due_at, position |
-| `ticket_comments` | ticket_id, user_id, body, timestamps |
+| `tickets` | project_id, number, type, title, description, status_id, priority, reporter_id, assignee_id, due_date, sort_order, version, timestamps, deleted_at |
+| `project_statuses` | project_id, stable code, name, category, position, is_initial, timestamps |
+| `project_status_transitions` | project_id, from_status_id, to_status_id; unique directed pair per project |
 | `activity_logs` | workspace_id, actor_id, action, subject_type, subject_id, changes JSON, created_at |
 
 Enforce foreign keys, relevant uniqueness constraints, indexes for common filters, and server-side pagination. Use Eloquent relationships; add tables only for actual features. Activity logs serve both security and ticket history—avoid redundant audit tables initially.
@@ -120,8 +117,8 @@ Enforce foreign keys, relevant uniqueness constraints, indexes for common filter
 |---|---|
 | P01 | Native authentication, accounts, workspace management, roles, permissions, invitations |
 | P02 | Projects, project membership, scoped access |
-| P03 | Tickets, assignments, backlog, ticket details/comments |
-| P04 | Kanban board, status transitions, ticket ordering, audit history |
+| P03 | Tickets, assignments, details, Kanban/list/table, configurable workflow/status transitions, ordering and audit history |
+| P04+ | Future modules require a separately approved specification |
 | P05+ | Optional notifications, attachments, reporting, agile features, integrations |
 
 **Done means:** Backend validation and authorization pass; expected workflows work in-browser; tenant/project isolation is tested; relevant tests pass; and docs reflect implemented behavior.

@@ -13,6 +13,7 @@ $modules = [
         'label' => 'Projects',
         'actions' => ['view' => 'View assigned projects', 'create' => 'Create projects', 'edit' => 'Edit active projects', 'delete' => 'Archive projects', 'setup' => 'Manage project members and restore projects'],
     ],
+    'tickets' => ['label' => 'Tickets & workflow', 'actions' => ['view' => 'View tickets and board', 'create' => 'Create tickets', 'edit' => 'Edit, assign and move tickets', 'delete' => 'Delete tickets', 'setup' => 'Configure project workflow']],
     'activity' => ['label' => 'Activity log', 'actions' => ['view' => 'View workspace activity']],
 ];
 $permissions = [];

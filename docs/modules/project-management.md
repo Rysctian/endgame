@@ -108,6 +108,8 @@ Permissions and workspace ownership must be validated in Laravel for every route
 
 **Constraints:** Unique (`project_id`, `user_id`). Membership is valid only when the user is an active member of the project's workspace; enforce this in Laravel. **Do not add `role_id`**: project permissions come from P01's workspace roles and project membership.
 
+**P03 integration:** Projects also hold last_ticket_number, board_version and workflow_version. Creating a project initializes its default statuses and transitions in the same transaction; existing projects are backfilled by the forward P03 migration. Ticket/board links appear only when authorized. Ticket-only readers enter their scoped boards from the workspace. See ticket-management.md for the complete ticket/workflow blueprint.
+
 **Reuse:** `users`, `workspaces`, `workspace_members`, `roles`, and `activity_logs`. No duplicate audit or permissions tables.
 
 ## 6. Validations and Business Rules
@@ -157,6 +159,6 @@ Laravel feature tests cover create/edit, normalization and workspace-scoped key 
 
 ## 10. Out of Scope
 
-Tickets, boards, Kanban, sprints, workflow engines, project-specific roles, reporting, integrations, and automation. Plan these separately before implementation.
+Ticket, Kanban and configurable workflow behavior belongs to the approved P03 blueprint in ticket-management.md. Sprints, project-specific roles, reporting, integrations and automation remain outside P02 and require separate approval.
 
 **Documentation rule:** Keep `docs/modules/project-management.md` as the single complete, current P02 blueprint. Integrate approved revisions directly into the relevant sections; after implementation, reconcile documentation with verified code rather than appending patch notes.

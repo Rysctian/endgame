@@ -13,6 +13,8 @@ class ProjectMigrationTest extends TestCase
 
     public function test_project_upgrade_extends_only_protected_defaults_and_preserves_existing_references(): void
     {
+        $tickets = require database_path('migrations/2026_10_24_000001_create_ticket_workflow_tables.php');
+        $tickets->down();
         $migration = require database_path('migrations/2026_10_23_000003_create_project_tables.php');
         $migration->down();
         $workspace = Workspace::create(['name' => 'Legacy workspace', 'slug' => 'legacy-workspace']);
@@ -30,5 +32,6 @@ class ProjectMigrationTest extends TestCase
         $this->assertSame($password, $user->fresh()->password);
         $this->assertTrue($user->fresh()->is_system_admin);
         $this->assertDatabaseCount('projects', 0);
+        $tickets->up();
     }
 }

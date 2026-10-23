@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProjectRequest;
 use App\Models\ActivityLog;
 use App\Models\Project;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\ProjectWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +64,7 @@ class ProjectController extends Controller
                 'created_by' => $request->user()->id,
                 'status' => 'active',
             ]);
+            app(ProjectWorkflowService::class)->initialize($project);
             ActivityLog::record($request->user(), 'project.created', $project, $workspace->id, $project->only('name', 'key', 'description', 'status'));
             if ($workspace->members()->where('user_id', $request->user()->id)->exists()) {
                 $project->members()->create(['user_id' => $request->user()->id]);
@@ -102,6 +105,8 @@ class ProjectController extends Controller
             'memberOptions' => $options,
             'memberSearch' => $search,
             'can' => [
+                'tickets' => Gate::allows('viewAny', [Ticket::class, $record]),
+                'workflow' => Gate::allows('setup', [Ticket::class, $record]),
                 'edit' => Gate::allows('update', $record),
                 'archive' => Gate::allows('archive', $record),
                 'restore' => Gate::allows('restore', $record),

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Link, useForm } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout.vue';
-import WorkspaceForm from '@/features/user-access/workspace-form.vue';
-import RoleForm from '@/features/user-access/role-form.vue';
-import MemberForm from '@/features/user-access/member-form.vue';
-import InvitationForm from '@/features/user-access/invitation-form.vue';
-import FormDialog from '@/features/user-access/form-dialog.vue';
-import FormErrors from '@/features/user-access/form-errors.vue';
-import PaginationLinks from '@/features/user-access/pagination-links.vue';
-import ActivityList from '@/features/user-access/activity-list.vue';
+import { ref } from "vue";
+import { Link, useForm } from "@inertiajs/vue3";
+import { Button } from "@/components/ui/button";
+import AppLayout from "@/layouts/app-layout.vue";
+import WorkspaceForm from "@/features/user-access/workspace-form.vue";
+import RoleForm from "@/features/user-access/role-form.vue";
+import MemberForm from "@/features/user-access/member-form.vue";
+import InvitationForm from "@/features/user-access/invitation-form.vue";
+import FormDialog from "@/features/user-access/form-dialog.vue";
+import FormErrors from "@/features/user-access/form-errors.vue";
+import PaginationLinks from "@/features/user-access/pagination-links.vue";
+import ActivityList from "@/features/user-access/activity-list.vue";
 import type {
     Workspace,
     Role,
@@ -20,7 +20,7 @@ import type {
     Paginated,
     Activity,
     PermissionModule,
-} from '@/features/user-access/types';
+} from "@/features/user-access/types";
 const props = defineProps<{
     workspace: Workspace;
     can: Record<string, boolean>;
@@ -31,6 +31,12 @@ const props = defineProps<{
     permissionModules: PermissionModule[];
     invitations: Paginated<Invitation> | null;
     activities: Paginated<Activity> | null;
+    ticketProjects: Paginated<{
+        id: number;
+        name: string;
+        key: string;
+        status: string;
+    }> | null;
 }>();
 const workspaceOpen = ref(false),
     roleOpen = ref(false),
@@ -65,7 +71,7 @@ function confirm() {
             },
         });
 }
-const base = '/workspaces/' + props.workspace.id;
+const base = "/workspaces/" + props.workspace.id;
 </script>
 <template>
     <AppLayout :title="workspace.name">
@@ -91,6 +97,33 @@ const base = '/workspaces/' + props.workspace.id;
                 >Edit workspace</Button
             >
         </div>
+        <section v-if="ticketProjects" class="rounded-xl border p-5">
+            <h2 class="mb-4 font-semibold">Ticket boards</h2>
+            <ul class="divide-y">
+                <li
+                    v-for="project in ticketProjects.data"
+                    :key="project.id"
+                    class="py-3"
+                >
+                    <Link
+                        :href="base + '/projects/' + project.id + '/tickets'"
+                        class="flex items-center justify-between gap-3 hover:text-primary"
+                        ><span class="font-medium">{{ project.name }}</span
+                        ><span
+                            class="font-mono text-xs text-muted-foreground"
+                            >{{ project.key }}</span
+                        ></Link
+                    >
+                </li>
+            </ul>
+            <p
+                v-if="!ticketProjects.data.length"
+                class="text-sm text-muted-foreground"
+            >
+                No assigned projects.
+            </p>
+            <PaginationLinks :links="ticketProjects.links" />
+        </section>
         <section v-if="members" class="overflow-hidden rounded-xl border">
             <div class="flex items-center justify-between gap-4 p-5">
                 <h2 class="font-semibold">
@@ -206,7 +239,7 @@ const base = '/workspaces/' + props.workspace.id;
                         <p class="mt-1 text-xs text-muted-foreground">
                             <span class="mr-2 font-mono">{{ role.code }}</span
                             >{{ role.permissions.length }} permission{{
-                                role.permissions.length === 1 ? '' : 's'
+                                role.permissions.length === 1 ? "" : "s"
                             }}
                         </p>
                     </div>
@@ -219,7 +252,7 @@ const base = '/workspaces/' + props.workspace.id;
                                 roleOpen = true;
                             "
                             >{{
-                                role.canEdit ? 'Edit role' : 'View permissions'
+                                role.canEdit ? "Edit role" : "View permissions"
                             }}</Button
                         ><Button
                             v-if="role.canDelete"

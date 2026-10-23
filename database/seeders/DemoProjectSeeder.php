@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\ActivityLog;
 use App\Models\Workspace;
+use App\Services\ProjectWorkflowService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -34,6 +35,7 @@ class DemoProjectSeeder extends Seeder
                     if (! $project->wasRecentlyCreated) {
                         continue;
                     }
+                    app(ProjectWorkflowService::class)->initialize($project);
                     ActivityLog::record($creator, 'project.created', $project, $workspace->id, $project->only('name', 'key', 'status'));
                     foreach ($members as $member) {
                         $project->members()->create(['user_id' => $member->user_id]);

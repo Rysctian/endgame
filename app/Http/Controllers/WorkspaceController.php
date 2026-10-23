@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Project;
+use App\Models\Ticket;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ class WorkspaceController extends Controller
         $workspace = DB::transaction(function () use ($request, $data) {
             $workspace = Workspace::create($data);
             $workspace->roles()->create(['name' => 'Manager', 'code' => 'manager', 'permissions' => array_keys(config('access.permissions')), 'is_system' => true]);
-            $workspace->roles()->create(['name' => 'Member', 'code' => 'member', 'permissions' => ['projects.view'], 'is_system' => true]);
+            $workspace->roles()->create(['name' => 'Member', 'code' => 'member', 'permissions' => ['projects.view', 'tickets.view', 'tickets.create', 'tickets.edit'], 'is_system' => true]);
             ActivityLog::record($request->user(), 'workspace.created', $workspace, $workspace->id, $data);
 
             return $workspace;
@@ -76,6 +77,7 @@ class WorkspaceController extends Controller
 
         return Inertia::render('workspaces/show', [
             'workspace' => $workspace, 'can' => $can, 'canEdit' => Gate::allows('update', $workspace),
+            'ticketProjects' => $can['tickets.view'] && ! $can['projects.view'] ? Project::visibleTo($user, $workspace)->orderBy('name')->paginate(12, ['id', 'name', 'key', 'status'], 'ticket_projects_page') : null,
             'members' => $members,
             'roles' => $can['roles.view'] ? $roles->map(fn ($role) => [
                 ...$role->only('id', 'name', 'code', 'permissions', 'is_system'),
@@ -88,11 +90,16 @@ class WorkspaceController extends Controller
             })->values()->all(),
             'invitations' => $can['members.create'] ? $workspace->invitations()->with('role:id,name')->whereNull('accepted_at')->whereNull('cancelled_at')->orderByDesc('id')->paginate(10, ['id', 'workspace_id', 'email', 'role_id', 'expires_at'], 'invitations_page')->through(fn ($invitation) => [...$invitation->only('id', 'email', 'expires_at'), 'role' => $invitation->role->only('id', 'name'), 'canCancel' => $assignable->contains('id', $invitation->role_id)]) : null,
             'activities' => $can['activity.view'] ? $workspace->activities()->where(function ($query) use ($workspace, $user, $can) {
-                $query->where('subject_type', '!=', (new Project)->getMorphClass())
-                    ->orWhere(function ($query) use ($workspace, $user, $can) {
-                        $query->where('subject_type', (new Project)->getMorphClass())
-                            ->whereIn('subject_id', Project::visibleTo($user, $workspace)
-                                ->when(! $can['projects.view'], fn ($q) => $q->whereRaw('1 = 0'))->select('id'));
+                $ticketType = (new Ticket)->getMorphClass();
+                $projectType = (new Project)->getMorphClass();
+                $visible = Project::visibleTo($user, $workspace)->select('id');
+                $query->whereNotIn('subject_type', [$projectType, $ticketType])
+                    ->orWhere(fn ($q) => $q->where('subject_type', $ticketType)->whereIn('subject_id', Ticket::withTrashed()->whereIn('project_id', clone $visible)->when(! $can['tickets.view'], fn ($q) => $q->whereRaw('1=0'))->select('id')))
+                    ->orWhere(function ($q) use ($projectType, $visible, $can) {
+                        $q->where('subject_type', $projectType)->whereIn('subject_id', $visible)->where(function ($q) use ($can) {
+                            $q->where(fn ($q) => $q->where('action', 'not like', 'workflow.%')->when(! $can['projects.view'], fn ($q) => $q->whereRaw('1=0')))
+                                ->orWhere(fn ($q) => $q->where('action', 'like', 'workflow.%')->when(! $can['tickets.view'], fn ($q) => $q->whereRaw('1=0')));
+                        });
                     });
             })->orderByDesc('id')->paginate(15, ['id', 'action', 'actor_id', 'changes', 'created_at'], 'activity_page') : null,
         ]);

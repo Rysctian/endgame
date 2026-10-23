@@ -46,11 +46,12 @@ resources/js/
 
 ## UI and UX
 - Reuse shadcn-vue components and Tailwind utilities before creating custom controls.
-- install and utilize shadcn's different components  (calendars, combobox for dropdowns, dropdown menu, range calendar), maximize drawers and dialogs for forms to avoid too much pages.
 - Install only components needed by an approved feature; use dialogs/drawers for short contextual forms and pages when the workflow warrants them.
 - Favor clean layouts, clear labels, consistent spacing, keyboard accessibility, and one primary action per view.
-- Avoid unnecessary descriptions, decorative icons, excessive dialogs, and custom CSS when existing utilities suffice.Let the layout do the explaining.
+- Avoid unnecessary descriptions, decorative icons, excessive dialogs, and custom CSS when existing utilities suffice.
 - Follow current project design tokens and established shadcn-vue patterns rather than redesigning unrelated screens.
+- Treat `resources/css/app.css` as the single source of truth for colors. Use semantic theme utilities (e.g., `bg-background`, `text-foreground`, `bg-primary`, `border-border`) and honor `:root`/`.dark` automatically.
+- Never hardcode colors or static palettes in Vue/TypeScript, inline styles, or component CSS. Add missing semantic color tokens centrally in `app.css` for both themes instead of using one-off Tailwind palette classes.
 
 ## Tables and Performance
 - Use TanStack Vue Table for interactive data tables that need sorting, filtering, or selection; use simple markup for trivial tables.
