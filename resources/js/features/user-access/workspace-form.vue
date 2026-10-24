@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ function submit() {
             <FormErrors :errors="form.errors" />
             <div class="space-y-2">
                 <label for="workspace-name">Workspace name</label
-                ><input
+                ><Input
                     id="workspace-name"
                     v-model="form.name"
                     required
@@ -44,7 +45,7 @@ function submit() {
             </div>
             <div class="space-y-2">
                 <label for="slug">Slug</label
-                ><input
+                ><Input
                     id="slug"
                     v-model="form.slug"
                     required

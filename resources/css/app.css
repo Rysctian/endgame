@@ -3,10 +3,10 @@
 @import './shadcn.css';
 
 @font-face {
-    font-family: 'Geist Sans';
-    src: url('../../public/fonts/geist-sans.woff2') format('woff2');
-    font-style: normal;
+    font-family: 'Geist';
+    src: url('../../public/fonts/geist-latin-variable.woff2') format('woff2');
     font-weight: 100 900;
+    font-style: normal;
     font-display: swap;
 }
 
@@ -16,7 +16,9 @@
 @source '../../storage/framework/views/*.php';
 
 @theme inline {
-    --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-sans:
+        'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif,
+        sans-serif;
     --font-heading: var(--font-sans);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -56,10 +58,10 @@
 }
 
 :root {
-    --background: #fbfaf8;
-    --foreground: #1d1c1a;
+    --background: #ffffff;
+    --foreground: #242326;
     --card: oklch(1 0 0);
-    --card-foreground: #1d1c1a;
+    --card-foreground: #242326;
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
     --primary: #b93d68;
@@ -71,8 +73,8 @@
     --accent: #f0eeea;
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: #e9e7e2;
-    --input: #dad7d0;
+    --border: #eae8e5;
+    --input: #dedbd7;
     --ring: #b93d68;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
@@ -80,9 +82,9 @@
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --workspace-sidebar-width: 252px;
-    --workspace-topbar-height: 46px;
-    --sidebar: #f4f3f0;
+    --workspace-sidebar-width: 236px;
+    --workspace-topbar-height: 50px;
+    --sidebar: #f6f5f2;
     --sidebar-foreground: #57544e;
     --sidebar-primary: #b93d68;
     --sidebar-primary-foreground: #ffffff;
@@ -99,8 +101,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: #e17b9e;
+    --primary-foreground: #201017;
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -118,7 +120,7 @@
     --chart-5: oklch(0.269 0 0);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary: #e17b9e;
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.269 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -134,8 +136,9 @@
         @apply bg-background text-foreground;
         @apply font-sans;
         -webkit-font-smoothing: antialiased;
-        font-size: 13.5px;
-        line-height: 1.45;
+        font-size: 13px;
+        line-height: 1.5;
+        font-optical-sizing: auto;
         font-feature-settings:
             'ss01' on,
             'cv11' on;
@@ -260,6 +263,340 @@
 }
 @media (max-width: 640px) {
     .ticket-input {
+        font-size: 16px;
+    }
+}
+
+/* Shared surface and interaction language. Colors remain centralized in both themes. */
+@theme inline {
+    --color-toolbar: var(--toolbar);
+    --color-success: var(--success);
+}
+:root {
+    --toolbar: #ffffffdc;
+    --success: #287850;
+    --shadow-panel: 0 1px 3px
+        color-mix(in oklab, var(--foreground) 3%, transparent);
+    --shadow-floating:
+        0 20px 70px color-mix(in oklab, var(--foreground) 14%, transparent),
+        0 2px 8px color-mix(in oklab, var(--foreground) 5%, transparent);
+    --ease-interface: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dark {
+    --toolbar: #1b1b1ee8;
+    --success: #86d4ab;
+    --shadow-panel: 0 1px 3px
+        color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+@layer base {
+    html {
+        scrollbar-gutter: stable;
+    }
+    body {
+        text-rendering: optimizeLegibility;
+    }
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']) {
+        cursor: pointer;
+    }
+    :where(
+        input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+        textarea,
+        select
+    ) {
+        @apply w-full rounded-lg border border-input bg-card px-3 py-2 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60;
+        min-height: 2.25rem;
+        box-shadow: 0 1px 2px
+            color-mix(in oklab, var(--foreground) 2%, transparent);
+        transition:
+            border-color 120ms ease,
+            box-shadow 120ms ease;
+    }
+    :where(input, textarea, select):focus-visible {
+        border-color: color-mix(in oklab, var(--primary) 65%, var(--border));
+        box-shadow: 0 0 0 3px
+            color-mix(in oklab, var(--primary) 12%, transparent);
+    }
+    :where(input, textarea):read-only {
+        @apply bg-muted/50 text-muted-foreground;
+    }
+    :where(input[type='checkbox'], input[type='radio']) {
+        @apply size-3.5 shrink-0 accent-primary;
+    }
+    :where(label, legend) {
+        @apply text-xs font-medium text-foreground;
+    }
+    :where(textarea) {
+        resize: vertical;
+    }
+    :where(input, select, textarea):disabled {
+        @apply cursor-not-allowed opacity-60;
+    }
+    :where(a, button):focus-visible {
+        @apply rounded-md outline-2 outline-offset-2 outline-ring;
+    }
+    ::selection {
+        background: color-mix(in oklab, var(--primary) 18%, transparent);
+    }
+}
+@layer components {
+    .brand-lockup {
+        @apply mx-5 mt-5 flex items-center gap-2.5;
+    }
+    .brand-mark {
+        @apply inline-flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-foreground text-background;
+        box-shadow: 0 1px 2px
+            color-mix(in oklab, var(--foreground) 15%, transparent);
+    }
+    .shell-sidebar {
+        @apply border-r border-sidebar-border bg-sidebar;
+    }
+    .shell-toolbar {
+        @apply border-b border-border/80 bg-toolbar;
+        backdrop-filter: blur(18px) saturate(150%);
+    }
+    .shell-nav {
+        @apply flex min-h-9 items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-1.5 text-xs text-sidebar-foreground outline-none;
+        transition:
+            background-color 120ms ease,
+            color 120ms ease;
+    }
+    .shell-nav:focus-visible {
+        @apply ring-2 ring-ring ring-offset-2 ring-offset-sidebar;
+    }
+    .shell-nav svg {
+        @apply shrink-0 text-muted-foreground;
+        stroke-width: 1.7;
+    }
+    .shell-nav:hover {
+        @apply bg-sidebar-accent;
+    }
+    .shell-nav.is-active {
+        @apply border-border/70 bg-card font-medium text-foreground;
+        box-shadow: var(--shadow-panel);
+    }
+    .shell-nav.is-active svg {
+        @apply text-primary;
+    }
+    .nav-caption {
+        @apply px-2.5 pb-2 pt-6 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground/80;
+    }
+    .icon-control {
+        @apply inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring;
+    }
+    .avatar-token {
+        @apply inline-flex shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/10 text-[10px] font-medium text-primary;
+    }
+    .project-symbol {
+        @apply inline-flex items-center justify-center rounded-lg border border-primary/10 bg-primary/8 text-primary;
+    }
+    .project-tab {
+        @apply flex shrink-0 items-center gap-2 border-b-2 border-transparent pb-3 text-xs text-muted-foreground hover:text-foreground;
+    }
+    .project-tab.is-active {
+        @apply border-primary font-medium text-foreground;
+    }
+    .state-badge {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground;
+    }
+    .state-badge::before {
+        content: '';
+        @apply size-1.5 rounded-full bg-muted-foreground/70;
+    }
+    .state-badge[data-state='active']::before {
+        @apply bg-success;
+    }
+    .state-badge[data-state='suspended'] {
+        @apply border-destructive/15 bg-destructive/5 text-destructive;
+    }
+    .state-badge[data-state='suspended']::before {
+        @apply bg-destructive;
+    }
+    .surface {
+        @apply overflow-hidden rounded-xl border bg-card;
+        box-shadow: var(--shadow-panel);
+    }
+    .section-heading {
+        @apply flex items-center justify-between gap-3 border-b px-5 py-4;
+    }
+    .section-title {
+        @apply text-[13px] font-semibold tracking-[-0.01em];
+    }
+    .page-content h1 {
+        @apply text-[23px] font-semibold leading-tight tracking-[-0.025em];
+    }
+    .page-content h2 {
+        @apply tracking-[-0.01em];
+    }
+    .page-content th {
+        @apply whitespace-nowrap px-5 py-3 text-left text-[11px] font-medium text-muted-foreground;
+    }
+    .page-content td {
+        @apply px-5 py-3 text-xs;
+    }
+    .page-content tbody tr {
+        transition: background-color 100ms ease;
+    }
+    .page-content tbody tr:hover {
+        @apply bg-muted/35;
+    }
+    .page-content .surface > h2 {
+        @apply border-b px-5 py-4;
+    }
+    .app-overlay {
+        @apply fixed inset-0 bg-overlay;
+        backdrop-filter: blur(3px);
+    }
+    .app-dialog {
+        @apply fixed left-1/2 top-1/2 z-50 max-h-[88dvh] w-[calc(100%_-_2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border bg-card p-6;
+        box-shadow: var(--shadow-floating);
+    }
+    .notice-success {
+        @apply rounded-lg border border-success/15 bg-success/5 px-4 py-3 text-xs text-success;
+    }
+    .empty-state {
+        @apply flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 py-14 text-center;
+    }
+    .empty-symbol {
+        @apply mb-4 flex size-12 items-center justify-center rounded-xl border bg-card text-muted-foreground;
+        box-shadow: var(--shadow-panel);
+    }
+    .project-card {
+        @apply flex min-w-0 flex-col rounded-xl border bg-card p-5;
+        box-shadow: var(--shadow-panel);
+        transition:
+            border-color 140ms ease,
+            box-shadow 140ms ease;
+    }
+    .project-card:hover {
+        @apply border-primary/30;
+        box-shadow: 0 4px 16px
+            color-mix(in oklab, var(--foreground) 4%, transparent);
+    }
+    .auth-form [data-slot='button'] {
+        min-height: 2.5rem;
+    }
+    .auth-form input:not([type='checkbox']) {
+        min-height: 2.75rem;
+    }
+    .auth-story {
+        background-image: radial-gradient(
+            ellipse at bottom left,
+            color-mix(in oklab, var(--primary) 5%, transparent),
+            transparent 65%
+        );
+    }
+    .auth-preview {
+        box-shadow: 0 8px 30px
+            color-mix(in oklab, var(--foreground) 4%, transparent);
+    }
+    .auth-orbit {
+        @apply pointer-events-none absolute -bottom-72 -right-72 size-[700px] rounded-full border border-primary/8;
+        box-shadow:
+            0 0 0 70px color-mix(in oklab, var(--primary) 2%, transparent),
+            0 0 0 140px color-mix(in oklab, var(--primary) 1%, transparent);
+    }
+    .skip-link {
+        @apply fixed left-4 top-3 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-2 text-sm text-background focus:translate-y-0;
+    }
+    .ticket-dialog,
+    .ticket-drawer {
+        box-shadow: var(--shadow-floating);
+    }
+    .ticket-control {
+        min-height: 2rem;
+    }
+}
+.button-feedback {
+    transition:
+        transform 120ms var(--ease-interface),
+        background-color 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+}
+.button-feedback:active:not(:disabled) {
+    transform: scale(0.98);
+}
+.app-dialog,
+.ticket-dialog {
+    transition:
+        opacity 160ms ease,
+        scale 180ms var(--ease-interface);
+}
+.mobile-sidebar {
+    transition:
+        translate 200ms var(--ease-interface),
+        opacity 150ms ease;
+}
+@starting-style {
+    .app-dialog,
+    .ticket-dialog {
+        opacity: 0;
+        scale: 0.985;
+    }
+    .mobile-sidebar {
+        translate: -8% 0;
+        opacity: 0;
+    }
+}
+:root[data-input='keyboard'] .button-feedback:active {
+    transform: none;
+}
+:root[data-input='keyboard']
+    :is(.app-dialog, .ticket-dialog, .ticket-drawer, .mobile-sidebar) {
+    transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .button-feedback,
+    .app-dialog,
+    .ticket-dialog,
+    .ticket-drawer,
+    .mobile-sidebar {
+        transition: opacity 100ms ease;
+    }
+    .button-feedback:active:not(:disabled) {
+        transform: none;
+    }
+    @starting-style {
+        .app-dialog,
+        .ticket-dialog {
+            scale: 1;
+        }
+        .mobile-sidebar {
+            translate: 0 0;
+        }
+    }
+}
+@media (prefers-reduced-transparency: reduce) {
+    .shell-toolbar {
+        @apply bg-background;
+        backdrop-filter: none;
+    }
+    .app-overlay {
+        backdrop-filter: none;
+    }
+}
+@media (prefers-contrast: more) {
+    .shell-toolbar {
+        @apply bg-background border-foreground/40;
+        backdrop-filter: none;
+    }
+    .shell-nav.is-active,
+    .surface,
+    .project-card {
+        @apply border-foreground/50;
+    }
+}
+@media (max-width: 640px) {
+    :where(input:not([type='checkbox']):not([type='radio']), textarea, select) {
         font-size: 16px;
     }
 }

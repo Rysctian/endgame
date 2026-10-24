@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ function submit() {
         <form class="mb-4 flex items-end gap-2" @submit.prevent="searchMembers">
             <div class="min-w-0 flex-1 space-y-2">
                 <label for="member-search">Search workspace members</label
-                ><input
+                ><Input
                     id="member-search"
                     v-model="searchValue"
                     maxlength="255"

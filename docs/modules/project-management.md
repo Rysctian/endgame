@@ -135,11 +135,13 @@ Permissions and workspace ownership must be validated in Laravel for every route
 | Project Members | Add/remove eligible workspace members |
 | Project Settings | Authorized edit, archive, and restore actions |
 
+Projects use the shared premium sidebar/toolbar, a compact card grid with actual description/key/status, and a two-column overview with project information and members. No unsupported metrics are displayed.
+
 Use Vue 3 + Inertia forms, typed props, shadcn-vue, and feature-first components. Prefer dialogs for small forms. Hide unauthorized actions; keep archived projects visibly read-only. Backend remains the source of truth.
 
 ## 8. Verification
 
-Laravel feature tests cover create/edit, normalization and workspace-scoped key uniqueness, protected fields, independent permissions/custom roles, Manager scope escalation, scoped list/activity counts, same-workspace member choices, bounded member search, duplicate prevention, archive/restore, suspension, workspace removal/rejoin, and denied cross-workspace requests. Upgrade tests verify default grants and preserved references. Factories create valid relationships; optional demo seeding is repeatable and preserves existing accounts and edited/archived projects. Chromium exercises create/edit, member assignment, a separate Member session, archive/read-only behavior, restore, removal/access revocation, and project search. The complete backend suite passes 53 tests / 648 assertions; all seven browser workflows pass.
+Laravel feature tests cover create/edit, normalization and workspace-scoped key uniqueness, protected fields, independent permissions/custom roles, Manager scope escalation, scoped list/activity counts, same-workspace member choices, bounded member search, duplicate prevention, archive/restore, suspension, workspace removal/rejoin, and denied cross-workspace requests. Upgrade tests verify default grants and preserved references. Factories create valid relationships; optional demo seeding is repeatable and preserves existing accounts and edited/archived projects. Chromium exercises create/edit, member assignment, a separate Member session, archive/read-only behavior, restore, removal/access revocation, and project search. The complete backend suite passes 68 tests / 1112 assertions; all 13 browser workflows pass, including projects, tickets and access management. TypeScript and the production build pass.
 
 ## 9. Implementation Contracts
 
@@ -162,3 +164,6 @@ Laravel feature tests cover create/edit, normalization and workspace-scoped key 
 Ticket, Kanban and configurable workflow behavior belongs to the approved P03 blueprint in ticket-management.md. Sprints, project-specific roles, reporting, integrations and automation remain outside P02 and require separate approval.
 
 **Documentation rule:** Keep `docs/modules/project-management.md` as the single complete, current P02 blueprint. Integrate approved revisions directly into the relevant sections; after implementation, reconcile documentation with verified code rather than appending patch notes.
+
+### Project sidebar navigation
+The authenticated sidebar shows all accessible projects under an expanded Projects menu, grouped by workspace when more than one workspace is available. The current workspace appears first; empty groups outside it are omitted when other groups contain projects. Project names link directly to an authorized overview, board, or workflow destination. The current project expands its permitted Overview, Board, List, Table and Workflow links beneath its name. Archived projects remain discoverable when view access allows it and are labeled Archived. Project visibility follows workspace membership, project assignment, and module permissions; no inaccessible names or workspace metadata are returned. Navigation contains minimal identifiers, labels, destinations and capability flags, prepared by a module-owned query and shared through Inertia. The list scrolls independently of the account footer and updates after membership, permission, name and archive changes.

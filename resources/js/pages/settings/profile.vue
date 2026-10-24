@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { computed } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/app-layout.vue';
@@ -16,9 +17,23 @@ const password = useForm({
 </script>
 <template>
     <AppLayout title="Profile"
-        ><h1 class="text-2xl font-semibold">Profile</h1>
-        <div class="grid gap-8 md:grid-cols-2">
-            <section class="rounded-xl border p-6">
+        ><div class="flex items-center gap-4 border-b pb-6">
+            <span class="avatar-token size-12 text-sm">{{
+                user.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+            }}</span>
+            <div>
+                <h1>Profile</h1>
+                <p class="mt-1.5 text-xs text-muted-foreground">
+                    Your account, your preferences.
+                </p>
+            </div>
+        </div>
+        <div class="grid max-w-5xl items-start gap-5 md:grid-cols-2">
+            <section class="surface p-6">
                 <h2 class="mb-5 font-semibold">Account details</h2>
                 <form
                     class="space-y-4"
@@ -27,7 +42,7 @@ const password = useForm({
                     <FormErrors :errors="profile.errors" />
                     <div class="space-y-2">
                         <label for="name">Name</label
-                        ><input
+                        ><Input
                             id="name"
                             v-model="profile.name"
                             autocomplete="name"
@@ -36,7 +51,7 @@ const password = useForm({
                     </div>
                     <div class="space-y-2">
                         <label for="email">Email</label
-                        ><input
+                        ><Input
                             id="email"
                             v-model="profile.email"
                             type="email"
@@ -54,7 +69,7 @@ const password = useForm({
                     >
                 </form>
             </section>
-            <section class="rounded-xl border p-6">
+            <section class="surface p-6">
                 <h2 class="mb-5 font-semibold">Change password</h2>
                 <form
                     class="space-y-4"
@@ -67,7 +82,7 @@ const password = useForm({
                     <FormErrors :errors="password.errors" />
                     <div class="space-y-2">
                         <label for="current">Current password</label
-                        ><input
+                        ><Input
                             id="current"
                             v-model="password.current_password"
                             type="password"
@@ -77,7 +92,7 @@ const password = useForm({
                     </div>
                     <div class="space-y-2">
                         <label for="new">New password</label
-                        ><input
+                        ><Input
                             id="new"
                             v-model="password.password"
                             type="password"
@@ -88,7 +103,7 @@ const password = useForm({
                     </div>
                     <div class="space-y-2">
                         <label for="confirmation">Confirm password</label
-                        ><input
+                        ><Input
                             id="confirmation"
                             v-model="password.password_confirmation"
                             type="password"

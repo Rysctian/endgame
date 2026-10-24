@@ -20,7 +20,7 @@ function accept() {
 </script>
 <template>
     <AppLayout title="Workspace invitation"
-        ><section class="mx-auto max-w-lg space-y-5 rounded-xl border p-7">
+        ><section class="surface mx-auto my-8 max-w-lg space-y-5 p-7 sm:p-9">
             <h1 class="text-2xl font-semibold">
                 Join {{ invitation.workspace.name }}
             </h1>

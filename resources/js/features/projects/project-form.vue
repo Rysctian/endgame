@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -49,7 +51,7 @@ function submit() {
                 <label for="project-name">{{
                     contract.fieldLabels.name
                 }}</label>
-                <input
+                <Input
                     id="project-name"
                     v-model="form.name"
                     :required="contract.fieldStates.name.required"
@@ -59,13 +61,11 @@ function submit() {
             </div>
             <div class="space-y-2">
                 <label for="project-key">{{ contract.fieldLabels.key }}</label>
-                <input
+                <Input
                     id="project-key"
-                    :value="form.key"
-                    @input="
-                        form.key = (
-                            $event.target as HTMLInputElement
-                        ).value.toUpperCase()
+                    :model-value="form.key"
+                    @update:model-value="
+                        (value) => (form.key = String(value).toUpperCase())
                     "
                     :required="contract.fieldStates.key.required"
                     :readonly="contract.fieldStates.key.readOnly"
@@ -78,7 +78,7 @@ function submit() {
                 <label for="project-description">{{
                     contract.fieldLabels.description
                 }}</label>
-                <textarea
+                <Textarea
                     id="project-description"
                     v-model="form.description"
                     rows="4"

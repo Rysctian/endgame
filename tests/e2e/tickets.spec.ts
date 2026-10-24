@@ -156,6 +156,7 @@ test('a stale drawer save preserves the attempted title and inline error', async
     await page
         .getByRole('button', { name: 'Polish the navigation', exact: true })
         .click();
+    await expect(page).toHaveURL(/ticket=\d+/);
     const other = await page.context().newPage();
     await other.goto(page.url());
     await other

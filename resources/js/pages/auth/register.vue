@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { Link, useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/layouts/auth-layout.vue';
 import FormErrors from '@/features/user-access/form-errors.vue';
@@ -21,7 +22,7 @@ function submit() {
             <FormErrors :errors="form.errors" />
             <div class="space-y-2">
                 <label for="name">Name</label
-                ><input
+                ><Input
                     id="name"
                     v-model="form.name"
                     autocomplete="name"
@@ -31,7 +32,7 @@ function submit() {
             </div>
             <div class="space-y-2">
                 <label for="email">Email</label
-                ><input
+                ><Input
                     id="email"
                     v-model="form.email"
                     type="email"
@@ -41,7 +42,7 @@ function submit() {
             </div>
             <div class="space-y-2">
                 <label for="password">Password</label
-                ><input
+                ><Input
                     id="password"
                     v-model="form.password"
                     type="password"
@@ -55,7 +56,7 @@ function submit() {
             </div>
             <div class="space-y-2">
                 <label for="confirmation">Confirm password</label
-                ><input
+                ><Input
                     id="confirmation"
                     v-model="form.password_confirmation"
                     type="password"

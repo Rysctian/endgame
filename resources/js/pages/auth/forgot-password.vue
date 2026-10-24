@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { Link, useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/layouts/auth-layout.vue';
 import FormErrors from '@/features/user-access/form-errors.vue';
@@ -14,7 +15,7 @@ const form = useForm({ email: '' });
             <FormErrors :errors="form.errors" />
             <div class="space-y-2">
                 <label for="email">Email</label
-                ><input
+                ><Input
                     id="email"
                     v-model="form.email"
                     type="email"

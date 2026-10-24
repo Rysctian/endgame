@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ function submit() {
             <FormErrors :errors="form.errors" />
             <div class="space-y-2">
                 <label for="invite-email">Invitation email</label
-                ><input
+                ><Input
                     id="invite-email"
                     v-model="form.email"
                     type="email"

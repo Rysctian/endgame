@@ -7,6 +7,7 @@ export interface ProjectSummary {
     name: string;
     key: string;
     status: string;
+    description: string | null;
 }
 export interface ProjectDetails extends ProjectSummary {
     description: string | null;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
@@ -135,7 +136,7 @@ function submit() {
                                 index + 1
                             }}</span>
                             <div>
-                                <input
+                                <Input
                                     v-model="status.name"
                                     :aria-label="'Status name ' + (index + 1)"
                                     class="ticket-input"
@@ -162,7 +163,7 @@ function submit() {
                                 </p>
                             </div>
                             <div>
-                                <input
+                                <Input
                                     v-model="status.code"
                                     :aria-label="'Status code ' + (index + 1)"
                                     class="ticket-input font-mono text-xs"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { computed, ref, watch, nextTick } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
@@ -184,6 +185,7 @@ function columnPage(id: number, page: number) {
         :workspace="workspace"
         :project="project"
         :active="filters.view"
+        :can-view="can.view"
         :can-setup="can.setup"
         :can-project="can.project"
         ><div
@@ -192,7 +194,7 @@ function columnPage(id: number, page: number) {
             <form class="relative" @submit.prevent="filter">
                 <Search
                     class="pointer-events-none absolute left-2.5 top-2 size-3.5 text-muted-foreground"
-                /><input
+                /><Input
                     v-model="search"
                     type="search"
                     aria-label="Search tickets"

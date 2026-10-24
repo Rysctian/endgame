@@ -25,6 +25,7 @@ export default async function setup(config: FullConfig) {
         SESSION_DRIVER: 'file',
         CACHE_STORE: 'array',
         QUEUE_CONNECTION: 'sync',
+        BCRYPT_ROUNDS: '4',
     };
     const options = { env, stdio: 'pipe' as const, windowsHide: true };
     execFileSync(php, ['tests/e2e/seed.php', '--check'], options);
@@ -44,9 +45,7 @@ export default async function setup(config: FullConfig) {
         [
             '-S',
             address.hostname + ':' + address.port,
-            resolve(
-                'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php',
-            ),
+            resolve('tests/e2e/server.php'),
         ],
         {
             cwd: resolve('public'),

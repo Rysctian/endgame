@@ -1,49 +1,53 @@
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue';
 import {
-    DialogRoot,
-    DialogPortal,
-    DialogOverlay,
+    Dialog,
     DialogContent,
     DialogTitle,
     DialogDescription,
     DialogClose,
-} from 'reka-ui';
-import { Button } from '@/components/ui/button';
+} from '@/components/ui/dialog';
+import { X } from '@lucide/vue';
 defineProps<{ title: string; description?: string; wide?: boolean }>();
 const open = defineModel<boolean>('open', { default: false });
+const opener = ref<HTMLElement | null>(null);
+watch(open, (value) => {
+    if (value) opener.value = document.activeElement as HTMLElement | null;
+});
+function restoreFocus(event: Event) {
+    event.preventDefault();
+    nextTick(() => opener.value?.isConnected && opener.value.focus());
+}
 </script>
 <template>
-    <DialogRoot v-model:open="open">
-        <DialogPortal>
-            <DialogOverlay class="fixed inset-0 z-40 bg-black/40" />
-            <DialogContent
-                :class="wide ? 'max-w-3xl' : 'max-w-lg'"
-                class="fixed left-1/2 top-1/2 z-50 max-h-[85dvh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border bg-background p-6 shadow-lg"
-            >
-                <div class="mb-6 flex items-start justify-between gap-4">
-                    <div>
-                        <DialogTitle class="text-lg font-semibold">{{
-                            title
-                        }}</DialogTitle
-                        ><DialogDescription
-                            :class="
-                                description
-                                    ? 'mt-1 text-sm text-muted-foreground'
-                                    : 'sr-only'
-                            "
-                            >{{
-                                description || 'Complete the fields below.'
-                            }}</DialogDescription
-                        >
-                    </div>
-                    <DialogClose as-child
-                        ><Button variant="ghost" aria-label="Close dialog"
-                            >×</Button
-                        ></DialogClose
+    <Dialog v-model:open="open"
+        ><DialogContent
+            :show-close-button="false"
+            :class="wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'"
+            class="app-dialog"
+            @close-auto-focus="restoreFocus"
+            ><div class="mb-6 flex items-start justify-between gap-4">
+                <div>
+                    <DialogTitle
+                        class="text-base font-semibold tracking-tight"
+                        >{{ title }}</DialogTitle
+                    ><DialogDescription
+                        :class="
+                            description
+                                ? 'mt-1.5 text-xs leading-5 text-muted-foreground'
+                                : 'sr-only'
+                        "
+                        >{{
+                            description || 'Complete the fields below.'
+                        }}</DialogDescription
                     >
                 </div>
-                <slot />
-            </DialogContent>
-        </DialogPortal>
-    </DialogRoot>
+                <DialogClose
+                    class="icon-control -mr-2 -mt-1"
+                    aria-label="Close dialog"
+                    ><X class="size-4"
+                /></DialogClose>
+            </div>
+            <slot /></DialogContent
+    ></Dialog>
 </template>

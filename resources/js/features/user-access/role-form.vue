@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ function submit() {
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="space-y-2">
                     <label for="role-name">Role name</label
-                    ><input
+                    ><Input
                         id="role-name"
                         v-model="form.name"
                         :readonly="readOnly || (role && !canEditDetails)"
@@ -61,7 +62,7 @@ function submit() {
                 </div>
                 <div class="space-y-2">
                     <label for="role-code">Role code</label
-                    ><input
+                    ><Input
                         id="role-code"
                         v-model="form.code"
                         :readonly="readOnly || (role && !canEditDetails)"

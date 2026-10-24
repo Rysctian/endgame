@@ -44,6 +44,56 @@ class ProjectManagementTest extends TestCase
         return '/workspaces/'.$workspace->id.'/projects'.($project ? '/'.$project->id : '');
     }
 
+    public function test_shared_project_navigation_is_complete_scoped_and_updates_after_revocation(): void
+    {
+        $workspace = $this->workspace();
+        $manager = $this->member($workspace, 'manager');
+        $first = $this->project($workspace, $manager, 'ONE');
+        $second = $this->project($workspace, $manager, 'TWO');
+        $second->update(['status' => 'archived']);
+        $member = $this->member($workspace);
+        $first->members()->create(['user_id' => $member->id]);
+        $foreign = $this->workspace();
+        $this->project($foreign, User::factory()->create(['is_system_admin' => true]), 'HIDE');
+        $this->actingAs($manager)->get('/profile')->assertInertia(fn (Assert $page) => $page
+            ->has('projectNavigation', 1)->has('projectNavigation.0.projects', 2)
+            ->where('projectNavigation.0.id', $workspace->id)
+            ->where('projectNavigation.0.projects.1.status', 'archived'));
+        $this->actingAs($member)->get('/workspaces')->assertInertia(fn (Assert $page) => $page
+            ->has('projectNavigation', 1)->has('projectNavigation.0.projects', 1)
+            ->where('projectNavigation.0.projects.0.id', $first->id)
+            ->where('projectNavigation.0.projects.0.href', $this->base($workspace, $first)));
+        $first->members()->where('user_id', $member->id)->delete();
+        $this->get('/profile')->assertInertia(fn (Assert $page) => $page->has('projectNavigation.0.projects', 0));
+        $member->memberships()->delete();
+        $this->get('/profile')->assertInertia(fn (Assert $page) => $page->has('projectNavigation', 0));
+    }
+
+    public function test_navigation_uses_only_authorized_project_destinations(): void
+    {
+        $workspace = $this->workspace();
+        $manager = $this->member($workspace, 'manager');
+        $project = $this->project($workspace, $manager);
+        $tickets = $this->member($workspace, permissions: ['tickets.view']);
+        $setup = $this->member($workspace, permissions: ['tickets.setup']);
+        $denied = $this->member($workspace, permissions: ['projects.create']);
+        foreach ([$tickets, $setup, $denied] as $user) {
+            $project->members()->create(['user_id' => $user->id]);
+        }
+        $this->actingAs($tickets)->get('/profile')->assertInertia(fn (Assert $page) => $page
+            ->where('projectNavigation.0.projects.0.href', $this->base($workspace, $project).'/tickets?view=board')
+            ->where('projectNavigation.0.projects.0.can.overview', false)
+            ->where('projectNavigation.0.projects.0.can.tickets', true));
+        $this->actingAs($setup)->get('/profile')->assertInertia(fn (Assert $page) => $page
+            ->where('projectNavigation.0.projects.0.href', $this->base($workspace, $project).'/workflow'));
+        $project->update(['status' => 'archived']);
+        $this->get('/profile')->assertInertia(fn (Assert $page) => $page->has('projectNavigation.0.projects', 0));
+        $this->actingAs($denied)->get('/profile')->assertInertia(fn (Assert $page) => $page
+            ->has('projectNavigation.0.projects', 0)->where('projectNavigation.0.href', $this->base($workspace)));
+        $this->actingAs(User::factory()->unverified()->create())->get('/profile')->assertInertia(fn (Assert $page) => $page->has('projectNavigation', 0));
+        $this->get('/login')->assertRedirect();
+    }
+
     public function test_create_normalizes_key_derives_ownership_and_records_creator_membership(): void
     {
         $workspace = $this->workspace();
@@ -89,7 +139,7 @@ class ProjectManagementTest extends TestCase
             $this->patch($this->base($w, $b), ['name' => 'Stolen', 'description' => ''])->assertForbidden();
             $this->get($this->base($w).'?search=TWO')->assertInertia(fn (Assert $page) => $page->where('projects.total', 0));
         }
-        $this->actingAs($manager)->get($this->base($w))->assertInertia(fn (Assert $page) => $page->where('projects.total', 2));
+        $this->actingAs($manager)->get($this->base($w))->assertInertia(fn (Assert $page) => $page->where('projects.total', 2)->where('projects.data.0.description', 'A project.'));
         $this->actingAs(User::factory()->create(['is_system_admin' => true]))->get($this->base($w, $b))->assertOk();
     }
 

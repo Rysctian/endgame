@@ -11,6 +11,7 @@ Use the screenshots in `design-reference/` as the **visual reference** for Endga
 
 | Screenshot | What to reference |
 |---|---|
+| [`sidebar-reference.png`](../design-reference/sidebar-reference.png) | Sidebar hierarchy: visible projects, selected project views, compact workspace navigation and fixed account footer. |
 | [`projects module.png`](../design-reference/projects%20module.png) | Workspace Projects page: card grid, compact project metadata, status badges, progress indicators, member avatars, search/filter/view controls. |
 | [`overview.png`](../design-reference/overview.png) | Project overview: header and tabs, two-column summary, About, Progress, Coming Up, Details, Milestones, Recent Activity. |
 | [`kanban.png`](../design-reference/kanban.png) | Horizontal board: compact status columns, draggable task cards, column counts, filters, inline Add Task actions. |
@@ -30,6 +31,12 @@ Inspect the relevant image **before building or revising** its screen. If an ima
 - **Surfaces:** Thin borders, small-to-medium corner radii, minimal shadows, generous whitespace between sections but compact spacing within records.
 - **Components:** Consistent icons, badges, avatars, inputs, compact menus, and subtle hover/focus states. Prefer clear text labels to excessive icon-only actions.
 - **Copy:** Keep interface labels short and purposeful. Do not add decorative headings, redundant descriptions, or unnecessary helper text.
+
+## Premium interface treatment
+
+Apply one coherent visual system to all specified modules, authentication and account settings. Preserve the supplied screenshot layouts and raspberry accent. Use locally hosted Geist Sans with a platform sans-serif fallback, precise heading tracking, warm neutral navigation, a white working canvas, fine borders, restrained elevation and compact, legible records. Project collections use cards with real metadata; project overview uses balanced information panels. No speculative progress or unsupported controls.
+
+Use a shared responsive sidebar and compact toolbar for authenticated pages. Mobile navigation uses an accessible focus-managed sheet; keep current workspace/project context visible. Authentication uses a quiet branded surface and focused form. Use the configured shadcn-vue reka-nova source components under components/ui for inputs, textareas, selects, date calendars/popovers, dialogs, sheets, cards and badges. Feature components compose these public APIs; direct Reka imports are confined to UI internals. Errors and activity share the same semantic tokens in both themes. Motion serves feedback or spatial orientation: instant keyboard actions, brief pointer press feedback, gentle contextual panel transitions and reduced-motion/transparency/contrast alternatives. Preserve backend capabilities and native form behavior.
 
 ## Shared App Layout
 
@@ -95,3 +102,6 @@ Display meaningful actor/action/target changes in reverse chronological order, g
 5. Verify responsive behavior, core interactions, keyboard access, permission states, and real data rendering; use Playwright for important flows.
 
 **Design priority:** Clear hierarchy → predictable interaction → compact, readable information → visual consistency. Keep the implementation simpler than the screenshots if the approved scope is smaller.Let the layout do the explaining.
+
+### Sidebar project hierarchy
+Use `design-reference/sidebar-reference.png` for the sidebar hierarchy: compact main menus, an expanded Projects group, directly visible project rows, and nested views for the selected project. Show supported, authorized menus only. Group projects by workspace when needed to distinguish context. Use the existing Geist typography, semantic theme colors, visible keyboard focus, truncation with full-name tooltips, and a scrollable navigation region above the account footer.

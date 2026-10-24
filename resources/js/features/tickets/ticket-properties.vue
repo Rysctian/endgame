@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import TicketSelect from './ticket-select.vue';
@@ -84,7 +85,7 @@ function searchPeople() {
             >
                 <summary class="cursor-pointer">Find a member</summary>
                 <div class="mt-1 flex gap-1">
-                    <input
+                    <Input
                         v-model="search"
                         aria-label="Search assignees"
                         class="ticket-input min-w-0"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus';
 import { Plus, ChevronLeft, ChevronRight } from '@lucide/vue';
 import TicketCard from './ticket-card.vue';
@@ -51,7 +51,8 @@ function start() {
         tickets: [...c.tickets],
     }));
 }
-function end(event: DraggableEvent) {
+async function end(event: DraggableEvent) {
+    await nextTick();
     dragging.value = false;
     const id = Number(event.item.dataset.ticketId);
     const ticket = before.value
@@ -59,9 +60,10 @@ function end(event: DraggableEvent) {
         .find((t) => t.id === id);
     const targetElement = event.to as HTMLElement;
     const target = Number(targetElement.dataset.statusId);
-    const ids = Array.from(
-        targetElement.querySelectorAll<HTMLElement>('[data-ticket-id]'),
-    ).map((el) => Number(el.dataset.ticketId));
+    const ids =
+        local.value
+            .find((column) => column.status_id === target)
+            ?.tickets.map((ticket) => ticket.id) ?? [];
     const index = ids.indexOf(id);
     if (
         ticket &&

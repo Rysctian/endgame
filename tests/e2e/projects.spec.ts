@@ -20,7 +20,7 @@ test('project creation, scoped membership, archive, restore and access revocatio
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await login(page, 'projectmanager');
-    await page.getByRole('link', { name: 'Project team' }).click();
+    await page.getByRole('link', { name: 'Project team', exact: true }).click();
     await page.getByRole('link', { name: 'Projects', exact: true }).click();
     await page
         .getByRole('button', { name: 'Create project', exact: true })

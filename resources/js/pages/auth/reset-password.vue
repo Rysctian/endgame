@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input';
 import { useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/layouts/auth-layout.vue';
 import FormErrors from '@/features/user-access/form-errors.vue';
@@ -25,7 +26,7 @@ const form = useForm({
             <FormErrors :errors="form.errors" />
             <div class="space-y-2">
                 <label for="email">Email</label
-                ><input
+                ><Input
                     id="email"
                     v-model="form.email"
                     type="email"
@@ -35,7 +36,7 @@ const form = useForm({
             </div>
             <div class="space-y-2">
                 <label for="password">Password</label
-                ><input
+                ><Input
                     id="password"
                     v-model="form.password"
                     type="password"
@@ -46,7 +47,7 @@ const form = useForm({
             </div>
             <div class="space-y-2">
                 <label for="confirmation">Confirm password</label
-                ><input
+                ><Input
                     id="confirmation"
                     v-model="form.password_confirmation"
                     type="password"

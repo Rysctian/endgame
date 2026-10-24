@@ -1,7 +1,7 @@
 # User & Access Management
 
 ## Status
-Phase 01, including Task 5 custom role codes and granular module permissions, is implemented and covered by backend and Chromium tests. Owns accounts, workspaces, invitations, memberships, roles and security activity. Project access integrates with the Project Management module; tickets remain deferred.
+Phase 01, including Task 5 custom role codes and granular module permissions, is implemented and covered by backend and Chromium tests. Owns accounts, workspaces, invitations, memberships, roles and security activity. Project and ticket access integrate with the Project Management and Ticket, Kanban & Workflow Management modules.
 
 ## Accounts
 Native Laravel sessions, password broker, email verification notifications and signed links. Register active, unverified, non-admin users. Normalize emails to lowercase. Passwords require confirmation and 12 characters. Limit login to five failures per minute per email/IP. Regenerate sessions on login and invalidate on logout. Profile email changes reset verification. Password changes require current password. Suspended accounts cannot authenticate or continue existing sessions. Only verified active System Admins administer global accounts. HTTP never grants System Admin. No self-suspension or suspension of another System Admin; no account deletion. An explicit console command provisions protected ownership.
@@ -10,16 +10,17 @@ Native Laravel sessions, password broker, email verification notifications and s
 Only System Admins create/update workspaces and administer global accounts. System Admin remains a protected user flag, never a workspace role or assignable permission. Manager and Member are the two default workspace roles; both remain immutable and cannot be deleted. Users may hold different workspace roles in different workspaces. Ordinary members require workspace membership; all checks require an active, verified account.
 
 ### Central module registry
-The supported modules and actions live in config/access.php. Only implemented workspace modules are registered. Project permissions are registered for P02; ticket permissions remain deferred. Personal profile, workspace listing and global account/workspace administration retain their existing access boundaries.
+The supported modules and actions live in config/access.php. Only implemented workspace modules are registered. Project permissions are registered for P02 and ticket/workflow permissions for P03. Personal profile, workspace listing and global account/workspace administration retain their existing access boundaries.
 
 | Module | View | Create | Edit | Delete | Setup |
 | --- | --- | --- | --- | --- | --- |
 | Workspace members | members.view: list members | members.create: invite/cancel invitations | members.edit: change member roles | members.delete: remove members | Not applicable |
 | Roles & permissions | roles.view: list roles and grants | roles.create: create custom roles | roles.edit: change name/code | roles.delete: delete unreferenced custom roles | roles.setup: change grants |
 | Projects | projects.view: view scoped projects | projects.create: create projects | projects.edit: edit active projects | projects.delete: archive projects | projects.setup: members and restore |
+| Tickets & workflow | tickets.view: view tickets and board | tickets.create: create tickets | tickets.edit: edit, assign and move tickets | tickets.delete: delete tickets | tickets.setup: configure project workflow |
 | Activity log | activity.view: read workspace history | Not applicable | Not applicable | Not applicable | Not applicable |
 
-Store enabled resource.action keys as a JSON array in roles.permissions. No separate permission tables or packages. Manager receives all supported workspace keys; Member receives projects.view for assigned projects. Actions are independently authorized; grant View as well when a user needs the corresponding list in the UI. New modules register supported actions when implemented.
+Store enabled resource.action keys as a JSON array in roles.permissions. No separate permission tables or packages. Manager receives all supported workspace keys; Member receives projects.view and tickets.view/create/edit for assigned projects. Actions are independently authorized; grant View as well when a user needs the corresponding list in the UI. New modules register supported actions when implemented.
 
 ### Custom role rules
 A custom role has a required name (max 100), a required lowercase kebab-case code (max 100, starts with a letter), and an explicit array of supported permission keys. Names and codes are unique within a workspace. Normalize codes to lowercase and trim names/codes. System Admin name/code is reserved. Reject client-provided workspace_id, is_system and is_system_admin fields. Default role codes are manager and member.
@@ -67,6 +68,8 @@ Use forward migrations preserving existing data. IDs are bigint.
 Users have memberships; workspaces have roles, members, invitations and logs. Invitations belong to a role and inviter. Composite role FKs prevent cross-workspace assignments. Audit data is allowlisted and excludes secrets. Log account lifecycle, authentication, profile/password changes, workspace changes, invitation lifecycle, membership/role changes and account administration. Workspace history requires activity.view; admins see recent global activity. Logs are read-only and paginated.
 
 ## UI and verification
+All account, workspace, membership, role, invitation and activity screens share the responsive premium navigation shell, compact typography, semantic tokens, form controls and dialogs defined in docs/UI-UX.md. Authentication and recovery use the same visual system in a focused branded layout. Module permissions and existing submission behavior stay unchanged.
+
 The root URL redirects guests to sign-in and authenticated users to workspaces. Explicit typed Inertia forms and kebab-case Vue pages. Contextual dialogs for short forms. Display errors, pending state and success feedback; hide actions using server-computed capabilities. Paginate lists. Confirm membership removal. Laravel remains authoritative.
 
 Test authentication, suspended sessions, tenant isolation, escalation, invitation edge cases and transactional activity. Playwright exercises auth and invitation/membership workflows on an isolated database. Factories provide valid relationships. Optional demo seeding is repeatable and preserves credentials. Browser setup verifies its dedicated SQLite target before migrations or fixtures, starts PHP directly, and stops its own server after tests. No production database reset is authorized.

@@ -25,7 +25,7 @@ resources/js/
 └── types/
 ```
 
-- Use **kebab-case** filenames and PascalCase Vue component tags.
+- Use **kebab-case** filenames and PascalCase Vue component tags. Shared shadcn-vue source files under `components/ui` retain their registry-style PascalCase filenames.
 - Keep feature-specific components and types inside their feature. Share only genuinely reusable code.
 - Follow the configured Inertia page resolver and existing repository conventions; do not restructure working code without a reason.
 - Extract components when they serve a clear responsibility or a page becomes difficult to read. Avoid unnecessary nested folders and abstractions.
@@ -45,7 +45,8 @@ resources/js/
 - **Hide** unauthorized actions; **disable** authorized actions only when temporarily unavailable.
 
 ## UI and UX
-- Reuse shadcn-vue components and Tailwind utilities before creating custom controls.
+- Reuse the configured shadcn-vue Nova components and Tailwind utilities before creating custom controls. Feature screens import `@/components/ui/*`; direct Reka UI imports belong only inside these shared primitives. Reka UI is the behavior layer used by shadcn-vue.
+- Use locally hosted Geist Sans through the central `--font-sans` token in `resources/css/app.css`, with platform sans-serif fallbacks.
 - Install only components needed by an approved feature; use dialogs/drawers for short contextual forms and pages when the workflow warrants them.
 - Favor clean layouts, clear labels, consistent spacing, keyboard accessibility, and one primary action per view.
 - Avoid unnecessary descriptions, decorative icons, excessive dialogs, and custom CSS when existing utilities suffice.

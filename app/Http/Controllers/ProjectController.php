@@ -39,7 +39,7 @@ class ProjectController extends Controller
             })
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->orderBy('name')->orderBy('id')
-            ->paginate(20, ['id', 'name', 'key', 'status'])->withQueryString();
+            ->paginate(20, ['id', 'name', 'key', 'description', 'status'])->withQueryString();
 
         return Inertia::render('projects/index', [
             'workspace' => $workspace->only('id', 'name'),

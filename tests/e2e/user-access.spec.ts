@@ -64,7 +64,7 @@ test('recipient accepts invitation and manager manages membership and roles', as
     ).toHaveCount(0);
     await page.getByRole('button', { name: 'Sign out' }).click();
     await login(page, 'manager');
-    await page.getByRole('link', { name: 'Browser team' }).click();
+    await page.getByRole('link', { name: 'Browser team', exact: true }).click();
     await expect(page.getByText('recipient@endgame.test')).toBeVisible();
     await page.getByRole('button', { name: 'Create role' }).click();
     await page.getByLabel('Role name').fill('Contributor');
@@ -143,7 +143,7 @@ test('custom role matrix CRUD changes permissions for an existing session', asyn
     baseURL,
 }) => {
     await login(page, 'admin');
-    await page.getByRole('link', { name: 'Browser team' }).click();
+    await page.getByRole('link', { name: 'Browser team', exact: true }).click();
     await page
         .getByRole('button', { name: 'Create role', exact: true })
         .click();
@@ -173,7 +173,9 @@ test('custom role matrix CRUD changes permissions for an existing session', asyn
     const recipientContext = await browser.newContext({ baseURL });
     const recipient = await recipientContext.newPage();
     await login(recipient, 'auditor');
-    await recipient.getByRole('link', { name: 'Browser team' }).click();
+    await recipient
+        .getByRole('link', { name: 'Browser team', exact: true })
+        .click();
     await expect(
         recipient.getByRole('heading', { name: 'Activity', exact: true }),
     ).toBeVisible();

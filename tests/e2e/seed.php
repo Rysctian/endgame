@@ -52,3 +52,8 @@ app(ProjectWorkflowService::class)->initialize($ticketProject);
 foreach (['Map the onboarding journey', 'Polish the navigation', 'Review keyboard accessibility'] as $title) {
     app(TicketService::class)->create($ticketUser, $ticketWorkspace, (string) $ticketProject->id, ['title' => $title, 'description' => 'Keep the experience clear and considered.', 'type' => 'task', 'priority' => 'medium', 'assignee_id' => $ticketUser->id]);
 }
+
+foreach (['Mobile app' => 'MOB', 'Design system' => 'DSGN'] as $name => $key) {
+    $project = $ticketWorkspace->projects()->create(['name' => $name, 'key' => $key, 'created_by' => $ticketUser->id, 'status' => $key === 'DSGN' ? 'archived' : 'active']);
+    app(ProjectWorkflowService::class)->initialize($project);
+}

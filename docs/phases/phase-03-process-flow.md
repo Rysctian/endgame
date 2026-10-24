@@ -1,6 +1,6 @@
 # Phase 03 — Ticket, Kanban & Workflow Management
 
-**Status:** Approved for implementation — backend verified; frontend verification in progress  
+**Status:** Implemented and verified — see the module blueprint for current behavior and verification
 **Dependencies:** P01 User & Access Management; P02 Project Management  
 **Goal:** Manage project tickets, board ordering, and configurable status transitions in one module.  
 **Final module blueprint:** `docs/modules/ticket-management.md`

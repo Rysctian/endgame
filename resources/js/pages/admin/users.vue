@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/app-layout.vue';
 import PaginationLinks from '@/features/user-access/pagination-links.vue';
@@ -18,15 +19,25 @@ function change(user: Account) {
 </script>
 <template>
     <AppLayout title="Accounts"
-        ><h1 class="text-2xl font-semibold">Accounts</h1>
-        <section class="overflow-hidden rounded-xl border">
+        ><div class="flex items-center justify-between border-b pb-5">
+            <div>
+                <p class="mb-2 text-xs text-muted-foreground">
+                    System administration
+                </p>
+                <h1>Accounts</h1>
+            </div>
+            <Badge variant="outline" class="state-badge"
+                >{{ users.total }} accounts</Badge
+            >
+        </div>
+        <section class="surface">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="border-b bg-muted/40">
                         <tr>
                             <th>Account</th>
                             <th>Status</th>
-                            <th>Email</th>
+                            <th>Verification</th>
                             <th><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
@@ -44,7 +55,13 @@ function change(user: Account) {
                                     System Admin
                                 </p>
                             </td>
-                            <td>{{ user.status }}</td>
+                            <td>
+                                <span
+                                    class="state-badge"
+                                    :data-state="user.status"
+                                    >{{ user.status }}</span
+                                >
+                            </td>
                             <td>
                                 {{
                                     user.email_verified_at

@@ -52,7 +52,22 @@ export interface Activity {
     actor_id: number | null;
     created_at: string;
 }
+export interface ProjectNavigationGroup {
+    id: number;
+    name: string;
+    href: string | null;
+    projects: {
+        id: number;
+        name: string;
+        key: string;
+        status: 'active' | 'archived';
+        href: string;
+        base: string;
+        can: { overview: boolean; tickets: boolean; workflow: boolean };
+    }[];
+}
 export interface SharedProps {
+    projectNavigation: ProjectNavigationGroup[];
     auth: { user: Account | null };
     status: string | null;
     errors: Record<string, string>;
